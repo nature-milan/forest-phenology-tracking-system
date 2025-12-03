@@ -12,6 +12,8 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.12"
+fastapi = "^0.123.5"
+uvicorn = "^0.38.0"
 
 
 [build-system]
