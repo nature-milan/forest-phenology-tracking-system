@@ -43,11 +43,10 @@ def get_point_phenology(
     location = LocationSchema(lat=lat, lon=lon)
 
     # --- MOCK DATA (will be replaced later) ---
-    # Just to make it feel more realistic, we'll derive some dates from the year.
-    sos = date(year, 4, 15)  # Start of season: April 15
-    eos = date(year, 10, 15)  # End of season:  October 15
+    sos = date(year, 4, 15)
+    eos = date(year, 10, 15)
     season_length = (eos - sos).days
-    is_forest = True  # Later this will be looked up from data
+    is_forest = True
     # --- END MOCK DATA ---
 
     return PhenologyPointResponse(
