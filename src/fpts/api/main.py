@@ -38,9 +38,7 @@ def get_point_phenology(
     Later, this will call a QueryService that reads from PostGIS
     """
 
-    logger.info(
-        "Phenology point query recieved", extra={"lat": lat, "lon": lon, "year": year}
-    )
+    logger.info(f"Phenology point query recieved: lat={lat}, lon={lon}, year={year}")
 
     location = LocationSchema(lat=lat, lon=lon)
 
