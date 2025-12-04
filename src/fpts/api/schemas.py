@@ -14,7 +14,7 @@ class LocationSchema(BaseModel):
 class PhenologyPointResponse(BaseModel):
     """
     Phenology metrics for a single location and year.
-    This is the shape that our phenology endpoints will return.
+    This is the shape that our phenology endpoints will return to a client.
     """
 
     year: int

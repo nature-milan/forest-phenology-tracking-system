@@ -2,7 +2,7 @@
 name = "fpts"
 version = "0.1.0"
 description = "Forest Phenology Tracking System Backend"
-authors = ["Milan <work.milandave@gmail.com>"]
+authors = ["billyblackk"]
 license = "MIT"
 readme = "README.md"
 packages = [
