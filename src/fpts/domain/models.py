@@ -31,4 +31,4 @@ class PhenologyMetric:
     sos_date: Optional[date]
     eos_date: Optional[date]
     season_length: Optional[int]
-    is_forest = bool
+    is_forest: bool
