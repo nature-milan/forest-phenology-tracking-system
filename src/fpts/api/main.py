@@ -44,7 +44,7 @@ def get_point_phenology(
 
     return PhenologyPointResponse(
         year=metric.year,
-        location=LocationSchema(lat=metric.location.lon, lon=metric.location.lon),
+        location=LocationSchema(lat=metric.location.lat, lon=metric.location.lon),
         sos_date=metric.sos_date,
         eos_date=metric.eos_date,
         season_length=metric.season_length,
