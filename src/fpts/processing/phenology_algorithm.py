@@ -42,7 +42,7 @@ def compute_sos_eos_threshold(
 
     threshold = ndvi_min + frac * (ndvi_max - ndvi_min)
 
-    above = [i for i, v in enumerate(ndvi) if v >= threshold]
+    above = [idx for idx, val in enumerate(ndvi) if val >= threshold]
     if not above:
         return PhenologyDates(None, None, None)
 

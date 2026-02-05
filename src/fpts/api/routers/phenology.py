@@ -18,9 +18,7 @@ def get_point_phenology(
     year: int = Query(..., ge=2000, le=2100),
     service: QueryService = Depends(get_query_service),
 ):
-    logger.info(
-        "Phenology point query received", extra={"lat": lat, "lon": lon, "year": year}
-    )
+    logger.info(f"Phenology point query received: lat: {lat}, lon: {lon}, year: {year}")
 
     location = Location(lat=lat, lon=lon)
     metric = service.get_point_metric(location=location, year=year)

@@ -24,9 +24,10 @@ class RasterService:
         location: Location,
     ) -> Any:
         """
-        Sample a raster at a given lat/ lon.
+        Sample a raster at a given location (lat/ lon.)
 
         Returns the pixel value (band 1).
+
         Raises FileNotFoundError if raster does not exist.
         """
 
