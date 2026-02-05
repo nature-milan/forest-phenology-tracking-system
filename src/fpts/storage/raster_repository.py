@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import Sequence
 
 
 class RasterRepository(ABC):
@@ -19,5 +20,13 @@ class RasterRepository(ABC):
     def exists(self, product: str, year: int) -> bool:
         """
         Return True if the raster file exists locally.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def list_ndvi_stack_paths(self, product: str, year: int) -> Sequence[Path]:
+        """
+        Return the list of GeoTIFF paths that form the NDVI stack for (product, year),
+        typically one file per time step (e.g. per DOY).
         """
         raise NotImplementedError

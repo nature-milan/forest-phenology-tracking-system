@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Sequence
 
 from fpts.storage.raster_repository import RasterRepository
 
@@ -22,3 +23,9 @@ class LocalRasterRepository(RasterRepository):
 
     def exists(self, product: str, year: int) -> bool:
         return self.raw_raster_path(product, year).exists()
+
+    def list_ndvi_stack_paths(self, product: str, year: int) -> Sequence[Path]:
+        stack_dir = self._data_dir / "raw" / product / str(year)
+        if not stack_dir.exists():
+            return []
+        return sorted(stack_dir.glob("doy_*.tif"))
