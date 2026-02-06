@@ -1,27 +1,30 @@
 from __future__ import annotations
 
-from dataclasses import replace
 from datetime import date, timedelta
 from typing import Optional
 
+import xarray as xr
+
 from fpts.domain.models import Location, PhenologyMetric
-from fpts.processing.ndvi_stack import extract_ndvi_timeseries, load_ndvi_stack
+from fpts.processing.ndvi_stack import load_ndvi_stack, extract_ndvi_timeseries
 from fpts.processing.phenology_algorithm import compute_sos_eos_threshold
 from fpts.storage.raster_repository import RasterRepository
 
 
 def _date_from_doy(year: int, doy: int) -> date:
-    # DOY 1 = Jan 1
     return date(year, 1, 1) + timedelta(days=doy - 1)
 
 
 class PhenologyComputationService:
     """
     Computes phenology metrics for a given location using an NDVI raster time stack.
+
+    Includes a small in-memory cache of loaded stacks keyed by (product, year)
     """
 
     def __init__(self, raster_repo: RasterRepository) -> None:
         self._raster_repo = raster_repo
+        self._stack_cache: dict[tuple[str, int], xr.DataArray] = {}
 
     def compute_point_phenology(
         self,
@@ -31,13 +34,20 @@ class PhenologyComputationService:
         threshold_frac: float = 0.5,
         is_forest: bool = True,
     ) -> PhenologyMetric:
-        paths = self._raster_repo.list_ndvi_stack_paths(product=product, year=year)
-        if not paths:
-            raise FileNotFoundError(
-                f"No NDVI stack files found for product={product}, year={year}"
-            )
+        key = (product, year)
 
-        stack = load_ndvi_stack(paths)
+        if key in self._stack_cache:
+            stack = self._stack_cache[key]
+
+        else:
+            paths = self._raster_repo.list_ndvi_stack_paths(product=product, year=year)
+            if not paths:
+                raise FileNotFoundError(
+                    f"No NDVI stack files found for product={product}, year={year}"
+                )
+            stack = load_ndvi_stack(paths)
+            self._stack_cache[key] = stack
+
         time_series = extract_ndvi_timeseries(stack, location)
 
         dates = compute_sos_eos_threshold(
