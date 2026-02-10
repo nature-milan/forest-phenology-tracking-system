@@ -21,29 +21,10 @@ class PhenologyRepository(ABC):
 
     @abstractmethod
     def get_metric_for_location(
-        self, location: Location, year: int
+        self, *, product: str, location: Location, year: int
     ) -> Optional[PhenologyMetric]:
         """
-        Return phenology metrics for a single location and year,
+        Return phenology metrics for a single product, location and year,
         or None if no data is available.
         """
-        raise NotImplementedError
-
-    @abstractmethod
-    def upsert(self, metric: PhenologyMetric) -> None:
-        raise NotImplementedError
-
-    @abstractmethod
-    def upsert_many(self, metrics: Iterable[PhenologyMetric]) -> None:
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_point(
-        self,
-        *,
-        lon: float,
-        lat: float,
-        year: int,
-        product: str,
-    ) -> PhenologyMetric | None:
         raise NotImplementedError

@@ -54,7 +54,9 @@ def get_point_phenology(
     location = Location(lat=lat, lon=lon)
 
     if mode == "repo":
-        metric = query_service.get_point_metric(location=location, year=year)
+        metric = query_service.get_point_metric(
+            product=product, location=location, year=year
+        )
         if metric is None:
             raise HTTPException(
                 status_code=404, detail="No phenology data found for this location/year"

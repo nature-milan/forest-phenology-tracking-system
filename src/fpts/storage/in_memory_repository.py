@@ -3,7 +3,7 @@ from typing import Optional, Tuple
 from fpts.domain.models import Location, PhenologyMetric
 from fpts.storage.phenology_repository import PhenologyRepository
 
-Key = Tuple[float, float, int]  # (lat, lon, year)
+Key = Tuple[str, float, float, int]  # (product, lat, lon, year)
 
 
 class InMemoryPhenologyRepository(PhenologyRepository):
@@ -19,12 +19,12 @@ class InMemoryPhenologyRepository(PhenologyRepository):
     def __init__(self) -> None:
         self._store: dict[Key, PhenologyMetric] = {}
 
-    def add_metric(self, metric: PhenologyMetric) -> None:
-        key = (metric.location.lat, metric.location.lon, metric.year)
+    def add_metric(self, product: str, metric: PhenologyMetric) -> None:
+        key: Key = (product, metric.location.lat, metric.location.lon, metric.year)
         self._store[key] = metric
 
     def get_metric_for_location(
-        self, location: Location, year: int
+        self, product: str, location: Location, year: int
     ) -> PhenologyMetric | None:
-        key: Key = (location.lat, location.lon, year)
+        key: Key = (product, location.lat, location.lon, year)
         return self._store.get(key)

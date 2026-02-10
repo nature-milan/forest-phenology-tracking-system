@@ -18,9 +18,11 @@ class QueryService:
         self._repository = repository
 
     def get_point_metric(
-        self, location: Location, year: int
+        self, product: str, location: Location, year: int
     ) -> Optional[PhenologyMetric]:
         """
         Return phenology metric for a single location and year, or None if not found
         """
-        return self._repository.get_metric_for_location(location, year)
+        return self._repository.get_metric_for_location(
+            product=product, location=location, year=year
+        )

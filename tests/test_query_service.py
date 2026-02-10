@@ -19,14 +19,15 @@ def test_query_service_returns_metric_when_present():
         is_forest=True,
     )
 
-    repo.add_metric(metric)
+    repo.add_metric(product="test_product", metric=metric)
 
-    result = service.get_point_metric(location=loc, year=2020)
+    result = service.get_point_metric(product="test_product", location=loc, year=2020)
 
     assert result is not None
+    assert result == metric
     assert result.year == 2020
     assert result.location == loc
-    assert result.is_forest == True
+    assert result.is_forest is True
 
 
 def test_query_service_returns_none_when_missing():
@@ -34,6 +35,6 @@ def test_query_service_returns_none_when_missing():
     service = QueryService(repository=repo)
 
     loc = Location(lat=0.0, lon=0.0)
-    result = service.get_point_metric(location=loc, year=2020)
+    result = service.get_point_metric(product="test_product", location=loc, year=2020)
 
     assert result is None

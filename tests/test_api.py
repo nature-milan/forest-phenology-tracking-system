@@ -13,19 +13,21 @@ def test_phenology_point_returns_seeded_metric():
     repo = app.state.phenology_repo
     loc = Location(lat=52.5, lon=13.4)
     repo.add_metric(
-        PhenologyMetric(
+        product="test_product",
+        metric=PhenologyMetric(
             year=2020,
             location=loc,
             sos_date=date(2020, 4, 15),
             eos_date=date(2020, 10, 15),
             season_length=(date(2020, 10, 15) - date(2020, 4, 15)).days,
             is_forest=True,
-        )
+        ),
     )
 
     client = TestClient(app)
     resp = client.get(
-        "/phenology/point", params={"lat": 52.5, "lon": 13.4, "year": 2020}
+        "/phenology/point",
+        params={"product": "test_product", "lat": 52.5, "lon": 13.4, "year": 2020},
     )
     assert resp.status_code == 200
 
