@@ -16,79 +16,79 @@ class PostGISPhenologyRepository(PhenologyRepository):
     def _connect(self):
         return psycopg.connect(self._dsn, row_factory=dict_row)
 
-    def upsert(self, metric: PhenologyMetric) -> None:
-        self.upsert_many([metric])
+    def upsert(self, *, product: str, metric: PhenologyMetric) -> None:
+        self.upsert_many(product=product, metrics=[metric])
 
-    def upsert_many(self, metrics: Iterable[PhenologyMetric]) -> None:
+    def upsert_many(self, *, product: str, metrics: Iterable[PhenologyMetric]) -> None:
         sql = """
         INSERT INTO phenology_metrics (
-            product, year, geom,
-            greenup_doy, maturity_doy, senescence_doy,
-            ndvi_max, ndvi_mean
+            product, year, lon, lat, geom,
+            sos_date, eos_date, season_length, is_forest
         )
         VALUES (
-            %(product)s,
-            %(year)s,
+            %(product)s, %(year)s, %(lon)s, %(lat)s,
             ST_SetSRID(ST_MakePoint(%(lon)s, %(lat)s), 4326),
-            %(greenup_doy)s, %(maturity_doy)s, %(senescence_doy)s,
-            %(ndvi_max)s, %(ndvi_mean)s
+            %(sos_date)s, %(eos_date)s, %(season_length)s, %(is_forest)s
         )
-        ON CONFLICT (product, year, geom)
+        ON CONFLICT (product, year, lon, lat)
         DO UPDATE SET
-            greenup_doy = EXCLUDED.greenup_doy,
-            maturity_doy = EXCLUDED.maturity_doy,
-            senescence_doy = EXCLUDED.senescence_doy,
-            ndvi_max = EXCLUDED.ndvi_max,
-            ndvi_mean = EXCLUDED.ndvi_mean;
+            sos_date = EXCLUDED.sos_date,
+            eos_date = EXCLUDED.eos_date,
+            season_length = EXCLUDED.season_length,
+            is_forest = EXCLUDED.is_forest;
         """
 
         with self._connect() as conn:
             with conn.cursor() as cur:
-                for m in metrics:
+                for metric in metrics:
                     cur.execute(
                         sql,
                         {
-                            "product": m.product,
-                            "year": m.year,
-                            "lon": m.lon,
-                            "lat": m.lat,
-                            "greenup_doy": m.greenup_doy,
-                            "maturity_doy": m.maturity_doy,
-                            "senescence_doy": m.senescence_doy,
-                            "ndvi_max": m.ndvi_max,
-                            "ndvi_mean": m.ndvi_mean,
+                            "product": product,
+                            "year": metric.year,
+                            "lon": metric.location.lon,
+                            "lat": metric.location.lat,
+                            "sos_date": metric.sos_date,
+                            "eos_date": metric.eos_date,
+                            "season_length": metric.season_length,
+                            "is_forest": metric.is_forest,
                         },
                     )
 
-    def get_point(
+    def get_metric_for_location(
         self,
         *,
-        lon: float,
-        lat: float,
-        year: int,
         product: str,
+        location: Location,
+        year: int,
     ) -> PhenologyMetric | None:
         sql = """
         SELECT
-            product, year,
-            ST_X(geom) AS lon,
-            ST_Y(geom) AS lat,
-            greenup_doy, maturity_doy, senescence_doy,
-            ndvi_max, ndvi_mean
+            year,
+            lat,
+            lon,
+            sos_date,
+            eos_date,
+            season_length,
+            is_forest
         FROM phenology_metrics
         WHERE
             product = %(product)s
             AND year = %(year)s
-            AND ST_Equals(
-                geom,
-                ST_SetSRID(ST_MakePoint(%(lon)s, %(lat)s), 4326)
-            )
+            AND lat = %(lat)s
+            AND lon = %(lon)s
         """
 
         with self._connect() as conn:
             with conn.cursor() as cur:
                 cur.execute(
-                    sql, {"lon": lon, "lat": lat, "year": year, "product": product}
+                    sql,
+                    {
+                        "year": year,
+                        "product": product,
+                        "lon": location.lon,
+                        "lat": location.lat,
+                    },
                 )
                 row = cur.fetchone()
                 if row is None:
