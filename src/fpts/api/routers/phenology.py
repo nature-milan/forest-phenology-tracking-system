@@ -42,7 +42,7 @@ def get_point_phenology(
     Get phenology metrics for a single point.
 
     mode=repo:
-      Reads from repository (currently in-memory; later PostGIS).
+      Reads from repository (PostGIS).
 
     mode=compute:
       Computes from NDVI raster stack on the fly (currently synthetic NDVI stack).
