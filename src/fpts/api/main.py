@@ -4,7 +4,7 @@ from fpts.config.settings import Settings
 from fpts.utils.logging import setup_logging, get_logger
 from fpts.api.routers.phenology import router as phenology_router
 from fpts.api.routers.debug import router as debug_router
-from fpts.api.wiring import wire_in_memory_services
+from fpts.api.wiring import wire_in_memory_services, wire_postgis_services
 
 logger = get_logger(__name__)
 
@@ -15,7 +15,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app = FastAPI(title=settings.app_name)
 
-    wire_in_memory_services(app, settings=settings)
+    if settings.phenology_repo_backend == "postgis":
+        wire_postgis_services(app, settings=settings)
+    else:
+        wire_in_memory_services(app, settings=settings)
 
     # Routers
     app.include_router(phenology_router)
