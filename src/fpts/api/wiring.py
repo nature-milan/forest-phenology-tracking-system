@@ -30,12 +30,14 @@ def wire_postgis_services(app, settings: Settings) -> None:
     """
     Wiring for Production.
     """
+    # Local raster repo to read from.
     app.state.raster_repo = LocalRasterRepository(data_dir=settings.data_dir)
     app.state.raster_service = RasterService(raster_repo=app.state.raster_repo)
     app.state.phenology_compute_service = PhenologyComputationService(
         raster_repo=app.state.raster_repo
     )
 
+    # PostGIS repo to store and read metrics.
     repo = PostGISPhenologyRepository(dsn=settings.database_dsn)
     app.state.phenology_repo = repo
     app.state.query_service = QueryService(repository=repo)
