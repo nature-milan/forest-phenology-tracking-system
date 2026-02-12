@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS phenology_metrics (
     lon DOUBLE PRECISION NOT NULL,
     lat DOUBLE PRECISION NOT NULL,
 
-    -- spatial column for PostGIS queries later
+    -- spatial column for PostGIS queries
     geom GEOMETRY(Point, 4326) NOT NULL,
 
     sos_date DATE,
