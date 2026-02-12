@@ -22,9 +22,9 @@ def get_point_phenology(
         ..., ge=-180.0, le=180.0, description="Longitude value for the point."
     ),
     year: int = Query(..., ge=2000, le=2027, description="Year we want to analyse."),
-    mode: Literal["repo", "compute"] = Query(
+    mode: Literal["repo", "compute", "auto"] = Query(
         "repo",
-        description="Execution mode - where to fetch metrics from. Return precomputed value from 'repo', or 'compute' it as part of request.",
+        description="Execution mode - where to fetch metrics from. Return precomputed value from 'repo', 'compute' it as part of request, or try to look up in repo but fall back to computing it with mode = 'auto'",
     ),
     product: str = Query("ndvi_synth", min_length=1, description="Product to analyse."),
     threshold_frac: float = Query(
@@ -46,6 +46,9 @@ def get_point_phenology(
 
     mode=compute:
       Computes from NDVI raster stack on the fly (currently synthetic NDVI stack).
+
+    mode=auto:
+      Tries to read from repo, and falls back to compute from NDVI raster stack on the fly (currently synthetic NDVI stack).
     """
     logger.info(
         f"Phenology point query received: lat: {lat}, lon: {lon}, year: {year}, mode: {mode}, product: {product}, threshold_frac: {threshold_frac}"
@@ -54,6 +57,27 @@ def get_point_phenology(
     location = Location(lat=lat, lon=lon)
 
     if mode == "repo":
+        metric = query_service.get_point_metric(
+            product=product, location=location, year=year
+        )
+        if metric is None:
+            raise HTTPException(
+                status_code=404,
+                detail="No phenology data found for this combination of product, location and year",
+            )
+
+    elif mode == "compute":
+        try:
+            metric = compute_service.compute_point_phenology(
+                product=product,
+                year=year,
+                location=location,
+                threshold_frac=threshold_frac,
+            )
+        except FileNotFoundError as e:
+            raise HTTPException(status_code=404, detail=str(e)) from e
+
+    else:  # mode == "auto"
         metric = query_service.get_point_metric(
             product=product, location=location, year=year
         )
@@ -68,17 +92,6 @@ def get_point_phenology(
                 )
             except FileNotFoundError as e:
                 raise HTTPException(status_code=404, detail=str(e)) from e
-    else:
-        # mode == "compute"
-        try:
-            metric = compute_service.compute_point_phenology(
-                product=product,
-                year=year,
-                location=location,
-                threshold_frac=threshold_frac,
-            )
-        except FileNotFoundError as e:
-            raise HTTPException(status_code=404, detail=str(e)) from e
 
     return PhenologyPointResponse(
         year=metric.year,
