@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Optional, Iterable
+from typing import Optional
 
 from fpts.domain.models import Location, PhenologyMetric
 
