@@ -230,8 +230,3 @@ class Mod13Q1IngestionService:
         out_path.parent.mkdir(parents=True, exist_ok=True)
         payload = asdict(plan)
         out_path.write_text(json.dumps(payload, indent=2, sort_keys=True))
-
-
-def verify_href_reachable(href: str, timeout_s: float = 20.0) -> None:
-    r = requests.head(href, timeout=timeout_s, allow_redirects=True)
-    r.raise_for_status()
