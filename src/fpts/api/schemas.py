@@ -45,3 +45,26 @@ class PhenologyTimeseriesResponse(BaseModel):
     metrics: list[PhenologyYearMetricSchema]
 
     model_config = ConfigDict(frozen=True)
+
+
+class GeoJSONPolygonRequest(BaseModel):
+    """
+    Accepts a GeoJSON geometry object (Polygon or MultiPolygon).
+    Minimal validation; PostGIS will do the heavy lifting.
+    """
+
+    geometry: dict = Field(
+        ..., description="GeoJSON geometry object (Polygon or MultiPolygon)."
+    )
+
+    model_config = ConfigDict(frozen=True)
+
+
+class PhenologyAreaStatsResponse(BaseModel):
+    product: str
+    year: int
+    n: int
+    mean_season_length: float | None = None
+    forest_fraction: float | None = None
+
+    model_config = ConfigDict(frozen=True)

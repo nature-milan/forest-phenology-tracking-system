@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from typing import Literal
 
 from fpts.api.schemas import (
@@ -6,6 +6,8 @@ from fpts.api.schemas import (
     PhenologyPointResponse,
     PhenologyTimeseriesResponse,
     PhenologyYearMetricSchema,
+    GeoJSONPolygonRequest,
+    PhenologyAreaStatsResponse,
 )
 from fpts.api.dependencies import get_query_service, get_phenology_compute_service
 from fpts.domain.models import Location
@@ -157,4 +159,33 @@ def get_point_timeseries(
             )
             for metric in metrics
         ],
+    )
+
+
+@router.post("/area", response_model=PhenologyAreaStatsResponse)
+def get_area_phenology_stats(
+    payload: GeoJSONPolygonRequest = Body(...),
+    year: int = Query(..., ge=2000, le=2027, description="Year we want to analyse."),
+    product: str = Query("ndvi_synth", min_length=1, description="Product to analyse."),
+    query_service: QueryService = Depends(get_query_service),
+):
+    logger.info(f"Phenology area query received: year: {year}, product: {product}")
+
+    stats = query_service.get_area_stats(
+        product=product,
+        year=year,
+        polygon_geojson=payload.geometry,
+    )
+    if stats is None:
+        raise HTTPException(
+            status_code=404,
+            detail="No phenology data found intersecting this polygon for the given product and year",
+        )
+
+    return PhenologyAreaStatsResponse(
+        product=product,
+        year=year,
+        n=stats["n"],
+        mean_season_length=stats["mean_season_length"],
+        forest_fraction=stats["forest_fraction"],
     )
