@@ -40,3 +40,17 @@ class PhenologyRepository(ABC):
         Returns an empty list if no data is available.
         """
         raise NotImplementedError
+
+    @abstractmethod
+    def get_area_stats(
+        self,
+        *,
+        product: str,
+        year: int,
+        polygon_geojson: dict,
+    ) -> dict | None:
+        """
+        Aggregate stats for points intersecting polygon.
+        Returns None if no rows matched.
+        """
+        raise NotImplementedError

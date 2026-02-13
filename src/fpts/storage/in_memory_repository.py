@@ -53,3 +53,13 @@ class InMemoryPhenologyRepository(PhenologyRepository):
 
         items.sort(key=lambda t: t[0])
         return [m for _, m in items]
+
+    def get_area_stats(
+        self,
+        *,
+        product: str,
+        year: int,
+        polygon_geojson: dict,
+    ) -> dict | None:
+        # In-memory repo does not do spatial ops; keep it explicit.
+        raise NotImplementedError("Area stats require PostGIS backend")

@@ -4,6 +4,7 @@ from typing import Iterable
 
 import psycopg
 from psycopg.rows import dict_row
+from psycopg.types.json import Json
 
 from fpts.domain.models import Location, PhenologyMetric
 from fpts.storage.phenology_repository import PhenologyRepository
@@ -159,3 +160,45 @@ class PostGISPhenologyRepository(PhenologyRepository):
                 )
             )
         return out
+
+    def get_area_stats(
+        self,
+        *,
+        product: str,
+        year: int,
+        polygon_geojson: dict,
+    ) -> dict | None:
+        sql = """
+        WITH poly AS (
+            SELECT ST_SetSRID(ST_GeomFromGeoJSON(%(poly)s), 4326) AS g
+        )
+        SELECT
+            COUNT(*)::int AS n,
+            AVG(season_length)::float AS mean_season_length,
+            AVG(CASE WHEN is_forest THEN 1 ELSE 0 END)::float AS forest_fraction
+        FROM phenology_metrics m, poly
+        WHERE
+            m.product = %(product)s
+            AND m.year = %(year)s
+            AND ST_Intersects(m.geom, poly.g)
+        """
+
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    sql,
+                    {
+                        "product": product,
+                        "year": year,
+                        "poly": Json(polygon_geojson),
+                    },
+                )
+                row = cur.fetchone()
+                if row is None or row["n"] == 0:
+                    return None
+
+                return {
+                    "n": int(row["n"]),
+                    "mean_season_length": row["mean_season_length"],
+                    "forest_fraction": row["forest_fraction"],
+                }

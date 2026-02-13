@@ -41,3 +41,16 @@ class QueryService:
             start_year=start_year,
             end_year=end_year,
         )
+
+    def get_area_stats(
+        self,
+        *,
+        product: str,
+        year: int,
+        polygon_geojson: dict,
+    ) -> dict | None:
+        return self._repository.get_area_stats(
+            product=product,
+            year=year,
+            polygon_geojson=polygon_geojson,
+        )
