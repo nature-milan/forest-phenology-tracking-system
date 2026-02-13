@@ -171,16 +171,28 @@ class PostGISPhenologyRepository(PhenologyRepository):
         sql = """
         WITH poly AS (
             SELECT ST_SetSRID(ST_GeomFromGeoJSON(%(poly)s), 4326) AS g
+        ),
+        flags AS (
+            SELECT
+                g,
+                (g IS NOT NULL) AS not_null,
+                (g IS NOT NULL AND NOT ST_IsEmpty(g)) AS not_empty,
+                (g IS NOT NULL AND ST_IsValid(g)) AS is_valid,
+                (g IS NOT NULL AND NOT ST_IsEmpty(g) AND ST_IsValid(g)) AS ok
+            FROM poly
         )
         SELECT
-            COUNT(*)::int AS n,
-            AVG(season_length)::float AS mean_season_length,
-            AVG(CASE WHEN is_forest THEN 1 ELSE 0 END)::float AS forest_fraction
-        FROM phenology_metrics m, poly
-        WHERE
-            m.product = %(product)s
+            f.ok AS ok,
+            COUNT(m.*)::int AS n,
+            AVG(m.season_length)::float AS mean_season_length,
+            AVG(CASE WHEN m.is_forest THEN 1 ELSE 0 END)::float AS forest_fraction
+        FROM flags f
+        LEFT JOIN phenology_metrics m
+            ON f.ok
+            AND m.product = %(product)s
             AND m.year = %(year)s
-            AND ST_Intersects(m.geom, poly.g)
+            AND ST_Covers(f.g, m.geom)
+        GROUP BY f.ok
         """
 
         with self._connect() as conn:
@@ -194,11 +206,16 @@ class PostGISPhenologyRepository(PhenologyRepository):
                     },
                 )
                 row = cur.fetchone()
-                if row is None or row["n"] == 0:
-                    return None
 
-                return {
-                    "n": int(row["n"]),
-                    "mean_season_length": row["mean_season_length"],
-                    "forest_fraction": row["forest_fraction"],
-                }
+        # row should always exist because flags yields 1 row
+        if row is None or row["ok"] is not True:
+            raise ValueError("Invalid GeoJSON geometry")
+
+        if row["n"] == 0:
+            return None
+
+        return {
+            "n": int(row["n"]),
+            "mean_season_length": row["mean_season_length"],
+            "forest_fraction": row["forest_fraction"],
+        }
