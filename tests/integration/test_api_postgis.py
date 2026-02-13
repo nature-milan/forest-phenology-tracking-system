@@ -157,3 +157,104 @@ def test_phenology_timeseries_returns_404_when_empty(app_postgis):
         resp.json()["detail"]
         == "No phenology data found for this combination of product, location and year range"
     )
+
+
+@pytest.mark.integration
+def test_phenology_area_returns_aggregates_for_intersecting_points(app_postgis):
+    repo = app_postgis.state.phenology_repo
+
+    # Three points in 2020, only two inside our polygon
+    p1 = Location(lat=52.50, lon=13.40)  # inside
+    p2 = Location(lat=52.51, lon=13.41)  # inside
+    p3 = Location(lat=52.60, lon=13.60)  # outside
+
+    repo.upsert(
+        product="test_product",
+        metric=PhenologyMetric(
+            year=2020,
+            location=p1,
+            sos_date=date(2020, 4, 10),
+            eos_date=date(2020, 10, 10),
+            season_length=183,
+            is_forest=True,
+        ),
+    )
+    repo.upsert(
+        product="test_product",
+        metric=PhenologyMetric(
+            year=2020,
+            location=p2,
+            sos_date=date(2020, 4, 20),
+            eos_date=date(2020, 10, 20),
+            season_length=184,
+            is_forest=False,
+        ),
+    )
+    repo.upsert(
+        product="test_product",
+        metric=PhenologyMetric(
+            year=2020,
+            location=p3,
+            sos_date=date(2020, 4, 1),
+            eos_date=date(2020, 10, 1),
+            season_length=183,
+            is_forest=True,
+        ),
+    )
+
+    # Small polygon around p1 & p2 (lon,lat order in GeoJSON)
+    poly = {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [13.39, 52.49],
+                [13.42, 52.49],
+                [13.42, 52.52],
+                [13.39, 52.52],
+                [13.39, 52.49],
+            ]
+        ],
+    }
+
+    client = TestClient(app_postgis)
+    resp = client.post(
+        "/phenology/area",
+        params={"product": "test_product", "year": 2020},
+        json={"geometry": poly},
+    )
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+
+    assert body["product"] == "test_product"
+    assert body["year"] == 2020
+    assert body["n"] == 2
+    assert abs(body["mean_season_length"] - ((183 + 184) / 2)) < 1e-9
+    assert abs(body["forest_fraction"] - 0.5) < 1e-9
+
+
+@pytest.mark.integration
+def test_phenology_area_returns_404_when_no_matches(app_postgis):
+    poly = {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [0.0, 0.0],
+                [0.1, 0.0],
+                [0.1, 0.1],
+                [0.0, 0.1],
+                [0.0, 0.0],
+            ]
+        ],
+    }
+
+    client = TestClient(app_postgis)
+    resp = client.post(
+        "/phenology/area",
+        params={"product": "test_product", "year": 2020},
+        json={"geometry": poly},
+    )
+    assert resp.status_code == 404
+    assert (
+        resp.json()["detail"]
+        == "No phenology data found intersecting this polygon for the given product and year"
+    )
