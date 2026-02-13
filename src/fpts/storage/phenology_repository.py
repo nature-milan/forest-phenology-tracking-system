@@ -10,9 +10,6 @@ class PhenologyRepository(ABC):
     """
     Abstract interface for storing and retrieving phenology metrics.
 
-    Later a concrete implementation using Postgres/ PostGIS will be added.
-    For now, this is just a contract used by services.
-
     To add:
     - get_timeseries_for_location
     - get_area_stats
@@ -26,5 +23,20 @@ class PhenologyRepository(ABC):
         """
         Return phenology metrics for a single product, location and year,
         or None if no data is available.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_timeseries_for_location(
+        self,
+        *,
+        product: str,
+        location: Location,
+        start_year: int,
+        end_year: int,
+    ) -> list[PhenologyMetric]:
+        """
+        Return metrics for a single product and location across a year range (inclusive).
+        Returns an empty list if no data is available.
         """
         raise NotImplementedError

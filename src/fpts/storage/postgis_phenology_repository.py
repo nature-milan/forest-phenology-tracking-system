@@ -102,3 +102,60 @@ class PostGISPhenologyRepository(PhenologyRepository):
                     season_length=row["season_length"],
                     is_forest=row["is_forest"],
                 )
+
+    def get_timeseries_for_location(
+        self,
+        *,
+        product: str,
+        location: Location,
+        start_year: int,
+        end_year: int,
+    ) -> list[PhenologyMetric]:
+        if end_year < start_year:
+            return []
+
+        sql = """
+        SELECT
+            year,
+            lat,
+            lon,
+            sos_date,
+            eos_date,
+            season_length,
+            is_forest
+        FROM phenology_metrics
+        WHERE
+            product = %(product)s
+            AND lat = %(lat)s
+            AND lon = %(lon)s
+            AND year BETWEEN %(start_year)s AND %(end_year)s
+        ORDER BY year ASC
+        """
+
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    sql,
+                    {
+                        "product": product,
+                        "lat": location.lat,
+                        "lon": location.lon,
+                        "start_year": start_year,
+                        "end_year": end_year,
+                    },
+                )
+                rows = cur.fetchall() or []
+
+        out: list[PhenologyMetric] = []
+        for row in rows:
+            out.append(
+                PhenologyMetric(
+                    year=int(row["year"]),
+                    location=Location(lat=float(row["lat"]), lon=float(row["lon"])),
+                    sos_date=row["sos_date"],
+                    eos_date=row["eos_date"],
+                    season_length=row["season_length"],
+                    is_forest=row["is_forest"],
+                )
+            )
+        return out

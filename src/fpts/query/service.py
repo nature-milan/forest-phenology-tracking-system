@@ -26,3 +26,18 @@ class QueryService:
         return self._repository.get_metric_for_location(
             product=product, location=location, year=year
         )
+
+    def get_point_timeseries(
+        self,
+        *,
+        product: str,
+        location: Location,
+        start_year: int,
+        end_year: int,
+    ) -> list[PhenologyMetric]:
+        return self._repository.get_timeseries_for_location(
+            product=product,
+            location=location,
+            start_year=start_year,
+            end_year=end_year,
+        )

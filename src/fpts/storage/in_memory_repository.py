@@ -29,3 +29,27 @@ class InMemoryPhenologyRepository(PhenologyRepository):
     ) -> PhenologyMetric | None:
         key: Key = (product, location.lat, location.lon, year)
         return self._store.get(key)
+
+    def get_timeseries_for_location(
+        self,
+        *,
+        product: str,
+        location: Location,
+        start_year: int,
+        end_year: int,
+    ) -> list[PhenologyMetric]:
+        if end_year < start_year:
+            return []
+
+        items: list[tuple[int, PhenologyMetric]] = []
+        for (p, lat, lon, year), metric in self._store.items():
+            if (
+                p == product
+                and lat == location.lat
+                and lon == location.lon
+                and start_year <= year <= end_year
+            ):
+                items.append((year, metric))
+
+        items.sort(key=lambda t: t[0])
+        return [m for _, m in items]
