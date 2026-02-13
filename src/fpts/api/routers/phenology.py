@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from typing import Literal
+from psycopg import Error as PsycopgError
 
 from fpts.api.schemas import (
     LocationSchema,
@@ -171,11 +172,15 @@ def get_area_phenology_stats(
 ):
     logger.info(f"Phenology area query received: year: {year}, product: {product}")
 
-    stats = query_service.get_area_stats(
-        product=product,
-        year=year,
-        polygon_geojson=payload.geometry,
-    )
+    try:
+        stats = query_service.get_area_stats(
+            product=product,
+            year=year,
+            polygon_geojson=payload.geometry,
+        )
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid GeoJSON geometry")
+
     if stats is None:
         raise HTTPException(
             status_code=404,

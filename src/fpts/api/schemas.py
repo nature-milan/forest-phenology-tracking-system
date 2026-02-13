@@ -1,7 +1,7 @@
 from datetime import date
 from typing import Optional
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 
 class LocationSchema(BaseModel):
@@ -48,14 +48,22 @@ class PhenologyTimeseriesResponse(BaseModel):
 
 
 class GeoJSONPolygonRequest(BaseModel):
-    """
-    Accepts a GeoJSON geometry object (Polygon or MultiPolygon).
-    Minimal validation; PostGIS will do the heavy lifting.
-    """
+    geometry: dict = Field(..., description="GeoJSON Polygon or MultiPolygon geometry")
 
-    geometry: dict = Field(
-        ..., description="GeoJSON geometry object (Polygon or MultiPolygon)."
-    )
+    @field_validator("geometry")
+    @classmethod
+    def validate_geometry_type(cls, val: dict) -> dict:
+        if not isinstance(val, dict):
+            raise ValueError("Geometry must be a JSON object")
+
+        geom_type = val.get("type")
+        if geom_type not in {"Polygon", "MultiPolygon"}:
+            raise ValueError("Only Polygon or MultiPolygon geometries are supported")
+
+        if "coordinates" not in val:
+            raise ValueError("GeoJSON geometry must contain coordinates")
+
+        return val
 
     model_config = ConfigDict(frozen=True)
 
