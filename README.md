@@ -142,17 +142,26 @@ poetry run python -m fpts.api
 Testing is split between unit and integration tests.
 The integration tests use external services Docker and PostGIS.
 
-To run unit tests only:
+1. To run unit tests only:
 ```bash
 poetry run pytest
 ```
 
-To run integration tests only:
+2. To run integration tests only:
+- First we have to start the Docker container:
+```bash
+docker compose -f docker-compose.test.yml up -d
+```
+- Next run:
 ```bash
 poetry run pytest -m integration
 ```
+- Finally stop the Docker contianer after the test:
+```bash
+docker compose -f docker-compose.test.yml up -d
+```
 
-To run both unit and integration tests:
+3. Same as above (2.) but replace the poetry command with:
 ```bash
 poetry run pytest -m "integration or not integration"
 ```
