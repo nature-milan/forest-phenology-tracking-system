@@ -4,8 +4,6 @@ import json
 from pathlib import Path
 from types import SimpleNamespace
 
-import pytest
-
 import fpts.ingestion.mod13q1 as mod13q1
 from fpts.config.settings import Settings
 from fpts.ingestion.mod13q1 import Mod13Q1IngestionService

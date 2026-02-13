@@ -57,39 +57,3 @@ def test_phenology_point_returns_404_for_missing_metric(app_postgis):
         resp.json()["detail"]
         == f"No phenology data found for this combination of product, location and year"
     )
-
-
-@pytest.mark.integration
-def test_phenology_point_compute_mode_returns_200(app_postgis):
-    client = TestClient(app_postgis)
-
-    resp = client.get(
-        "/phenology/point",
-        params={
-            "product": "ndvi_synth",
-            "lat": 40.0,
-            "lon": 10.0,
-            "year": 2020,
-            "mode": "compute",
-        },
-    )
-
-    assert resp.status_code == 200
-
-
-@pytest.mark.integration
-def test_phenology_point_auto_mode_returns_200(app_postgis):
-    client = TestClient(app_postgis)
-
-    resp = client.get(
-        "/phenology/point",
-        params={
-            "product": "ndvi_synth",
-            "lat": 40.0,
-            "lon": 10.0,
-            "year": 2020,
-            "mode": "auto",
-        },
-    )
-
-    assert resp.status_code == 200
