@@ -139,9 +139,24 @@ poetry run python -m fpts.api
 
 ## Testing
 
+Testing is split between unit and integration tests.
+The integration tests use external services Docker and PostGIS.
+
+To run unit tests only:
 ```bash
 poetry run pytest
 ```
+
+To run integration tests only:
+```bash
+poetry run pytest -m integration
+```
+
+To run both unit and integration tests:
+```bash
+poetry run pytest -m "integration or not integration"
+```
+
 
 ---
 
