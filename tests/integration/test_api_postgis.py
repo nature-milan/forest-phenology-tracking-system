@@ -258,3 +258,18 @@ def test_phenology_area_returns_404_when_no_matches(app_postgis):
         resp.json()["detail"]
         == "No phenology data found intersecting this polygon for the given product and year"
     )
+
+
+@pytest.mark.integration
+def test_area_returns_400_for_invalid_geometry(app_postgis):
+    client = TestClient(app_postgis)
+
+    invalid_poly = {"type": "Polygon", "coordinates": []}  # invalid ring
+
+    resp = client.post(
+        "/phenology/area",
+        params={"product": "test_product", "year": 2020},
+        json={"geometry": invalid_poly},
+    )
+
+    assert resp.status_code == 400
