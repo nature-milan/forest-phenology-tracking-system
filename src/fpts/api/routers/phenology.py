@@ -71,7 +71,7 @@ def get_point_phenology(
         if metric is None:
             raise HTTPException(
                 status_code=404,
-                detail="No phenology data found for this combination of product, location and year",
+                detail=f"No phenology data found for product: {product}, location: Location(lat={lat}, lon={lon}) and year: {year}",
             )
 
     elif mode == "compute":
@@ -90,7 +90,6 @@ def get_point_phenology(
             product=product, location=location, year=year
         )
         if metric is None:
-            # fallback to compute
             try:
                 metric = compute_service.compute_point_phenology(
                     product=product,
@@ -142,7 +141,7 @@ def get_point_timeseries(
     if not metrics:
         raise HTTPException(
             status_code=404,
-            detail="No phenology data found for this combination of product, location and year range",
+            detail=f"No phenology data found for product: {product}, location: {location} and year range {start_year} : {end_year}",
         )
 
     return PhenologyTimeseriesResponse(
@@ -184,7 +183,7 @@ def get_area_phenology_stats(
     if stats is None:
         raise HTTPException(
             status_code=404,
-            detail="No phenology data found intersecting this polygon for the given product and year",
+            detail=f"No phenology data found intersecting this polygon for product: {product} and year: {year}",
         )
 
     return PhenologyAreaStatsResponse(

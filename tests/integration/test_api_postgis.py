@@ -52,7 +52,7 @@ def test_phenology_point_returns_404_for_missing_metric(app_postgis):
     assert resp.status_code == 404
     assert (
         resp.json()["detail"]
-        == f"No phenology data found for this combination of product, location and year"
+        == f"No phenology data found for product: test_product, location: Location(lat=40.0, lon=10.0) and year: 2020"
     )
 
 
@@ -155,7 +155,7 @@ def test_phenology_timeseries_returns_404_when_empty(app_postgis):
     assert resp.status_code == 404
     assert (
         resp.json()["detail"]
-        == "No phenology data found for this combination of product, location and year range"
+        == "No phenology data found for product: test_product, location: Location(lat=52.5, lon=13.4) and year range 2018 : 2022"
     )
 
 
@@ -253,10 +253,11 @@ def test_phenology_area_returns_404_when_no_matches(app_postgis):
         params={"product": "test_product", "year": 2020},
         json={"geometry": poly},
     )
+    print(resp)
     assert resp.status_code == 404
     assert (
         resp.json()["detail"]
-        == "No phenology data found intersecting this polygon for the given product and year"
+        == f"No phenology data found intersecting this polygon for product: test_product and year: 2020"
     )
 
 
