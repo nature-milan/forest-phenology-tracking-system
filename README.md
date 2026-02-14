@@ -158,7 +158,7 @@ poetry run pytest -m integration
 ```
 - Finally stop the Docker contianer after the test:
 ```bash
-docker compose -f docker-compose.test.yml up -d
+docker compose -f docker-compose.test.yml down -v
 ```
 
 3. Same as above (2.) but replace the poetry command with:
