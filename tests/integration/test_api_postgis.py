@@ -253,7 +253,7 @@ def test_phenology_area_returns_404_when_no_matches(app_postgis):
         params={"product": "test_product", "year": 2020},
         json={"geometry": poly},
     )
-    print(resp)
+
     assert resp.status_code == 404
     assert (
         resp.json()["detail"]
@@ -465,6 +465,47 @@ def test_phenology_area_median_season_length(app_postgis):
 
 @pytest.mark.integration
 def test_phenology_area_both_mean_and_median(app_postgis):
+    repo = app_postgis.state.phenology_repo
+    year = 2020
+
+    p1 = Location(lat=52.50, lon=13.40)
+    p2 = Location(lat=52.51, lon=13.41)
+    p3 = Location(lat=52.505, lon=13.405)
+
+    repo.upsert(
+        product="test_product",
+        metric=PhenologyMetric(
+            year=year,
+            location=p1,
+            sos_date=date(year, 4, 1),
+            eos_date=date(year, 10, 1),
+            season_length=10,
+            is_forest=True,
+        ),
+    )
+    repo.upsert(
+        product="test_product",
+        metric=PhenologyMetric(
+            year=year,
+            location=p2,
+            sos_date=date(year, 4, 1),
+            eos_date=date(year, 10, 1),
+            season_length=20,
+            is_forest=True,
+        ),
+    )
+    repo.upsert(
+        product="test_product",
+        metric=PhenologyMetric(
+            year=year,
+            location=p3,
+            sos_date=date(year, 4, 1),
+            eos_date=date(year, 10, 1),
+            season_length=30,
+            is_forest=True,
+        ),
+    )
+
     client = TestClient(app_postgis)
 
     poly = {
@@ -482,10 +523,10 @@ def test_phenology_area_both_mean_and_median(app_postgis):
 
     resp = client.post(
         "/phenology/area",
-        params={"product": "test_product", "year": 2020, "season_length_stat": "both"},
+        params={"product": "test_product", "year": year, "season_length_stat": "both"},
         json={"geometry": poly},
     )
-    assert resp.status_code == 200
+    assert resp.status_code == 200, resp.text
     body = resp.json()
     assert body["mean_season_length"] is not None
     assert body["median_season_length"] is not None
