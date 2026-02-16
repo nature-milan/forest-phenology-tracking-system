@@ -203,11 +203,13 @@ def get_area_phenology_stats(
             detail=f"No phenology data found intersecting this polygon for product: {product} and year: {year}",
         )
 
+    print(f"Stats: {stats}")
+
     return PhenologyAreaStatsResponse(
         product=product,
         year=year,
         n=stats["n"],
-        mean_season_length=stats["mean_season_length"],
-        median_season_length=stats["median_seaon_length"],
-        forest_fraction=stats["forest_fraction"],
+        mean_season_length=stats.get("mean_season_length"),
+        median_season_length=stats.get("median_season_length"),
+        forest_fraction=stats.get("forest_fraction"),
     )

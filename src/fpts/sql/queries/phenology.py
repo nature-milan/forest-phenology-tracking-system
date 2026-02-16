@@ -68,6 +68,7 @@ SELECT
     f.ok AS ok,
     COUNT(m.*)::int AS n,
     AVG(m.season_length)::float AS mean_season_length,
+    percentile_cont(0.5) WITHIN GROUP (ORDER BY m.season_length)::float AS median_season_length,
     AVG(CASE WHEN m.is_forest THEN 1 ELSE 0 END)::float AS forest_fraction
 FROM flags f
 LEFT JOIN phenology_metrics m
