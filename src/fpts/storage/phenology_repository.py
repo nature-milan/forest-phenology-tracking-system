@@ -50,6 +50,7 @@ class PhenologyRepository(ABC):
         polygon_geojson: dict,
         only_forest: bool = False,
         min_season_length: int | None = None,
+        season_length_stat: str = "mean",
     ) -> dict | None:
         """
         Aggregated stats for points intersecting polygon.

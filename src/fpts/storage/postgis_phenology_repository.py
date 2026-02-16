@@ -131,7 +131,10 @@ class PostGISPhenologyRepository(PhenologyRepository):
         polygon_geojson: dict,
         only_forest: bool = False,
         min_season_length: int | None = None,
+        season_length_stat: str = "mean",
     ) -> dict | None:
+        if season_length_stat not in {"mean", "median", "both"}:
+            raise ValueError("Invalid season_length_stat")
 
         sql = GET_AREA_STATS
 
@@ -156,8 +159,14 @@ class PostGISPhenologyRepository(PhenologyRepository):
         if row["n"] == 0:
             return None
 
-        return {
+        out = {
             "n": int(row["n"]),
-            "mean_season_length": row["mean_season_length"],
             "forest_fraction": row["forest_fraction"],
         }
+
+        if season_length_stat in {"mean", "both"}:
+            out["mean_season_length"] = row["mean_season_length"]
+        if season_length_stat in {"median", "both"}:
+            out["median_season_length"] = row["median_season_length"]
+
+        return out

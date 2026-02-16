@@ -60,6 +60,7 @@ class InMemoryPhenologyRepository(PhenologyRepository):
         product: str,
         year: int,
         polygon_geojson: dict,
+        season_length_stat: str,
     ) -> dict | None:
         # In-memory repo does not do spatial ops; keep it explicit.
         raise NotImplementedError("Area stats require PostGIS backend")
