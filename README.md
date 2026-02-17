@@ -9,98 +9,21 @@ This project is designed as a **software engineering portfolio project** at the 
 - environmental science
 - backend system design
 
----
+------------------------------------------------------------------------
 
-## Project Status
+## Overview
 
-The system now supports **real raster-backed phenology computation** (using synthetic NDVI data for now), with:
+The Forest Phenology Tracking System (FPTS) is a backend analytics
+platform designed to compute and serve vegetation phenology metrics
+(e.g., season length, SOS/EOS dates) at both point and polygon levels.
 
-- Clean layered architecture
-- Deterministic, testable phenology algorithms
-- Raster IO and NDVI time-series handling
-- API endpoints backed by real computation
-- Proper configuration, logging, and dependency injection
+The system demonstrates: - Clean architecture separation (API → Service
+→ Repository → SQL) - PostGIS-powered spatial querying -
+Production-grade HTTP semantics (400 vs 404 correctness) - Integration
+testing with real PostGIS - Query parameter validation and schema
+contracts
 
-Real MODIS ingestion and persistence (PostGIS) are planned next.
-
----
-
-## High-Level Architecture
-
-```
-HTTP API (FastAPI)
-        ↓
-Application Services
-(QueryService / PhenologyComputationService)
-        ↓
-Processing Layer
-(RasterService, NDVI stack, phenology algorithms)
-        ↓
-Storage Abstractions
-(RasterRepository, PhenologyRepository)
-        ↓
-Domain Models
-(Location, PhenologyMetric)
-```
-
----
-
-## API Overview
-
-### Health Check
-
-```
-GET /health
-```
-
-Health check returns basic service info:
-```json
-{
-  "status": "ok",
-  "environment": "development",
-  "log_level": "info"
-}
-```
-
-### Point Phenology (Computed)
-
-```
-GET /phenology/point
-```
-
-Supports:
-- repository-backed reads
-- raster-backed on-the-fly computation
-
-Point phenology returns metrics and metadata:
-```python
-(
-year=metric.year,
-location=LocationSchema(lat=metric.location.lat, lon=metric.location.lon),
-sos_date=metric.sos_date,
-eos_date=metric.eos_date,
-season_length=metric.season_length,
-is_forest=metric.is_forest
-)
-```
-
----
-
-## Code Structure
-
-```
-src/fpts/
-├── api/
-├── domain/
-├── processing/
-├── storage/
-├── query/
-├── config/
-├── utils/
-├── scripts/
-```
-
----
+------------------------------------------------------------------------
 
 ## Tech Stack
 
@@ -112,12 +35,65 @@ src/fpts/
 - Data Modeling:
         - Python dataclasses for domain models
         - Pydantic models for API schemas
+- Database: Postgres + PostGIS for phenology metrics
 - Logging: Standard library logging with centralized setup
-- Planned additions:
-        - Postgres + PostGIS for phenology metrics
-        - Background processing pipelines for ingestion and phenology metric computation
 
----
+------------------------------------------------------------------------
+
+## Architecture
+
+src/fpts/ ├── api/ \# FastAPI routers + schemas ├── query/ \#
+Application services ├── storage/ \# Repository interfaces + PostGIS
+implementation ├── sql/queries/ \# Runtime SQL (single source of truth)
+├── config/ \# Settings & configuration
+
+### Layers
+
+API Layer - Request validation - Response schemas - HTTP error mapping
+
+Application Layer - QueryService orchestrates read operations
+
+Storage Layer - PhenologyRepository (abstract) -
+PostGISPhenologyRepository (default production backend)
+
+SQL Layer - All runtime SQL centralized in sql/queries/phenology.py
+
+------------------------------------------------------------------------
+
+## Implemented Endpoints
+
+### 1. GET /phenology/point
+
+Returns phenology metrics for a single location and year.
+
+-   200 → Data found
+-   404 → No data for that location/year
+
+------------------------------------------------------------------------
+
+### 2. GET /phenology/timeseries
+
+Returns multi-year phenology metrics for a single location.
+
+Parameters: - lat, lon - start_year, end_year - product
+
+Behavior: - 400 → Invalid year range - 404 → No data found
+
+------------------------------------------------------------------------
+
+### 3. POST /phenology/area
+
+Aggregates phenology metrics within a GeoJSON polygon for a given year.
+
+Features: - Accepts Polygon or MultiPolygon - Geometry validation via
+PostGIS (ST_IsValid, ST_IsEmpty) - Boundary-inclusive selection via
+ST_Covers - Optional filters: - only_forest - min_season_length -
+Supports statistics: - mean - median (via percentile_cont) - both
+
+HTTP Semantics: - 400 → Invalid geometry - 404 → Valid geometry but no
+intersecting data - 200 → Aggregated results
+
+------------------------------------------------------------------------
 
 ## Getting started
 
@@ -126,54 +102,75 @@ Prerequisites
 - Poetry Installed.
 - (Optional) Git & GitHub for version control.
 
----
+------------------------------------------------------------------------
 
-## Running Locally
+## Run Locally
 
 ```bash
 poetry install
 poetry run python -m fpts.api
 ```
 
----
+------------------------------------------------------------------------
 
-## Testing
+## Testing Strategy
 
-Testing is split between unit and integration tests.
-The integration tests use external services Docker and PostGIS.
+-   Unit tests for service layer
+-   Integration tests with real PostGIS
+-   Synthetic spatial geometries seeded per test
+-   Validation of:
+    -   Mean/median correctness
+    -   Filter behavior
+    -   400 vs 404 behavior
+    -   Enum validation (422)
 
-1. To run unit tests only:
-```bash
-poetry run pytest
-```
+Run tests:
 
-2. To run integration tests only:
-- First we have to start the Docker container:
-```bash
-docker compose -f docker-compose.test.yml up -d
-```
-- Next run:
-```bash
-poetry run pytest -m integration
-```
-- Finally stop the Docker contianer after the test:
-```bash
-docker compose -f docker-compose.test.yml down -v
-```
+- (UNIT): `poetry run pytest -q`
+- (INTEGRATION ONLY): `poetry run pytest -q -m integration`
+    - Before running integration tests, execute the following commands in order:
+    - `docker compose -f docker-compose.test.yml up -d`
+    - Then run: `poetry run pytest -q -m integration`
+    - `docker compose -f docker-compose.test.yml down -v`
 
-3. Same as above (2.) but replace the poetry command with:
-```bash
-poetry run pytest -m "integration or not integration"
-```
+- (UNIT AND INTEGRATION): `poetry run pytest -q -m "integration or not integration"`
 
+------------------------------------------------------------------------
 
----
+## Phase 11 (Next)
 
-## Roadmap
+Production Hardening:
 
-- MODIS NDVI ingestion
-- PostGIS persistence
-- Area-based phenology
-- Docker & CI
+-   Docker + docker-compose (API + PostGIS)
+-   GitHub Actions CI (lint + tests + coverage)
+-   Structured logging
+-   Request logging middleware
+-   Optional Prometheus metrics endpoint
+-   Basic caching strategy
 
----
+------------------------------------------------------------------------
+
+## Phase 12 (Future Polish)
+
+-   Architecture diagram
+-   Engineering decisions document
+-   Scaling discussion (tiling, batch jobs, async workers)
+-   Optional minimal demo client (Notebook or small UI)
+-   Deployment example (e.g., Fly.io / Render / AWS ECS)
+
+------------------------------------------------------------------------
+
+## Long-Term Extensions
+
+-   Raster ingestion pipeline
+-   Background workers for batch processing
+-   Precomputed spatial tiles
+-   GeoJSON FeatureCollection outputs
+-   Time-series trend analysis (slope detection)
+-   Vectorized polygon performance optimization
+
+------------------------------------------------------------------------
+
+## License
+
+MIT (or update as appropriate)
