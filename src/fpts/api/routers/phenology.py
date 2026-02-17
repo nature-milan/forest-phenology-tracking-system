@@ -9,6 +9,7 @@ from fpts.api.schemas import (
     PhenologyYearMetricSchema,
     GeoJSONPolygonRequest,
     PhenologyAreaStatsResponse,
+    SeasonLengthStat,
 )
 from fpts.api.dependencies import get_query_service, get_phenology_compute_service
 from fpts.domain.models import Location
@@ -110,7 +111,14 @@ def get_point_phenology(
     )
 
 
-@router.get("/timeseries", response_model=PhenologyTimeseriesResponse)
+@router.get(
+    "/timeseries",
+    response_model=PhenologyTimeseriesResponse,
+    responses={
+        404: {"description": "No data found"},
+        400: {"description": "Invalid parameters"},
+    },
+)
 def get_point_timeseries(
     lat: float = Query(
         ..., ge=-90.0, le=90.0, description="Latitude value for the point."
@@ -128,6 +136,11 @@ def get_point_timeseries(
     logger.info(
         f"Phenology timeseries query received: lat: {lat}, lon: {lon}, start_year: {start_year}, end_year: {end_year}, product: {product}"
     )
+
+    if end_year < start_year:
+        raise HTTPException(
+            status_code=400, detail="Invalid parameters: end_year must be <= start_year"
+        )
 
     location = Location(lat=lat, lon=lon)
 
@@ -170,9 +183,8 @@ def get_area_phenology_stats(
     only_forest: bool = Query(
         False, description="If True, only include forest points."
     ),
-    season_length_stat: str = Query(
-        "mean",
-        pattern="^(mean|median|both)$",
+    season_length_stat: SeasonLengthStat = Query(
+        SeasonLengthStat.mean,
         description="How to summarise season_length: mean, median, or both.",
     ),
     min_season_length: int | None = Query(
@@ -192,7 +204,7 @@ def get_area_phenology_stats(
             polygon_geojson=payload.geometry,
             only_forest=only_forest,
             min_season_length=min_season_length,
-            season_length_stat=season_length_stat,
+            season_length_stat=season_length_stat.value,
         )
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid GeoJSON geometry")

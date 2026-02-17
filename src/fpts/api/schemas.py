@@ -1,5 +1,6 @@
 from datetime import date
 from typing import Optional
+from enum import Enum
 
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 
@@ -78,3 +79,9 @@ class PhenologyAreaStatsResponse(BaseModel):
     forest_fraction: float | None = None
 
     model_config = ConfigDict(frozen=True)
+
+
+class SeasonLengthStat(str, Enum):
+    mean = "mean"
+    median = "median"
+    both = "both"
