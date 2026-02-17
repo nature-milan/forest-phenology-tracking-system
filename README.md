@@ -131,13 +131,15 @@ poetry run python -m fpts.api
 Run tests:
 
 - (UNIT): `poetry run pytest -q`
-- (INTEGRATION ONLY): `poetry run pytest -q -m integration`
-    - Before running integration tests, execute the following commands in order:
+- (INTEGRATION ONLY):
+    - For all integration tests, execute the following commands in order:
     - `docker compose -f docker-compose.test.yml up -d`
     - Then run: `poetry run pytest -q -m integration`
     - `docker compose -f docker-compose.test.yml down -v`
 
-- (UNIT AND INTEGRATION): `poetry run pytest -q -m "integration or not integration"`
+- (UNIT AND INTEGRATION):
+    - Follow Docker commands from above and replace the poetry command with the one below:
+    - `poetry run pytest -q -m "integration or not integration"`
 
 ------------------------------------------------------------------------
 
