@@ -141,7 +141,7 @@ Run tests:
 
 ------------------------------------------------------------------------
 
-## Phase 11 (Next)
+## Next phase of project
 
 Production Hardening:
 
@@ -154,7 +154,7 @@ Production Hardening:
 
 ------------------------------------------------------------------------
 
-## Phase 12 (Future Polish)
+## Future Polish
 
 -   Architecture diagram
 -   Engineering decisions document
