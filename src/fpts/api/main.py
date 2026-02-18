@@ -14,6 +14,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     setup_logging(level=settings.log_level)
 
     app = FastAPI(title=settings.app_name)
+    app.state.settings = settings
 
     if settings.phenology_repo_backend == "postgis":
         wire_postgis_services(app, settings=settings)
