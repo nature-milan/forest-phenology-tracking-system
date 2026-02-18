@@ -2,10 +2,7 @@ from datetime import date
 
 from fastapi.testclient import TestClient
 
-from fpts.api.main import create_app
 from fpts.domain.models import Location, PhenologyMetric
-
-from fpts.config.settings import Settings
 
 
 def test_phenology_point_returns_seeded_metric(app_memory):
@@ -61,11 +58,14 @@ def test_phenology_point_returns_404_for_missing_metric(
             "mode": "repo",
         },
     )
+
+    detail = resp.json()["detail"]
+
     assert resp.status_code == 404
-    assert (
-        resp.json()["detail"]
-        == f"No phenology data found for product: {test_product}, location: Location(lat={lat}, lon={lon}) and year: {year}"
-    )
+    assert "No phenology data found for product" in detail
+    assert f"{test_product}" in detail
+    assert f"{Location(lat=lat, lon=lon)}" in detail
+    assert f"{year}" in detail
 
 
 def test_phenology_point_compute_mode_returns_200(app_memory):

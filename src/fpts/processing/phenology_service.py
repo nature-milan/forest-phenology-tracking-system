@@ -6,7 +6,7 @@ from typing import Optional
 import xarray as xr
 
 from fpts.domain.models import Location, PhenologyMetric
-from fpts.processing.ndvi_stack import load_ndvi_stack, extract_ndvi_timeseries
+from fpts.processing.ndvi_stack import extract_ndvi_timeseries, load_ndvi_stack
 from fpts.processing.phenology_algorithm import compute_sos_eos_threshold
 from fpts.storage.raster_repository import RasterRepository
 

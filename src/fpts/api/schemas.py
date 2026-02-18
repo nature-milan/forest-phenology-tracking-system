@@ -1,8 +1,8 @@
 from datetime import date
-from typing import Optional
 from enum import Enum
+from typing import Optional
 
-from pydantic import BaseModel, Field, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class LocationSchema(BaseModel):

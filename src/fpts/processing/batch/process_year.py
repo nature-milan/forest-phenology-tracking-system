@@ -5,7 +5,6 @@ from typing import Iterable
 
 from fpts.config.settings import Settings
 from fpts.domain.models import Location, PhenologyMetric
-from fpts.ingestion.mod13q1 import Mod13Q1IngestionService
 from fpts.processing.phenology_service import PhenologyComputationService
 from fpts.storage.local_raster_repository import LocalRasterRepository
 from fpts.storage.postgis_phenology_repository import PostGISPhenologyRepository

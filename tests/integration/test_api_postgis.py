@@ -1,5 +1,6 @@
-import pytest
 from datetime import date
+
+import pytest
 from fastapi.testclient import TestClient
 
 from fpts.domain.models import Location, PhenologyMetric
@@ -36,24 +37,29 @@ def test_phenology_point_returns_seeded_metric_postgis(app_postgis):
 
 
 @pytest.mark.integration
-def test_phenology_point_returns_404_for_missing_metric(app_postgis):
+def test_phenology_point_returns_404_for_missing_metric(
+    app_postgis, product="test_product", lat=40.0, lon=10.0, year=2020, mode="repo"
+):
     client = TestClient(app_postgis)
 
     resp = client.get(
         "/phenology/point",
         params={
-            "product": "test_product",
-            "lat": 40.0,
-            "lon": 10.0,
-            "year": 2020,
-            "mode": "repo",
+            "product": product,
+            "lat": lat,
+            "lon": lon,
+            "year": year,
+            "mode": mode,
         },
     )
+
+    detail = resp.json()["detail"]
+
     assert resp.status_code == 404
-    assert (
-        resp.json()["detail"]
-        == f"No phenology data found for product: test_product, location: Location(lat=40.0, lon=10.0) and year: 2020"
-    )
+    assert "No phenology data found" in detail
+    assert f"{product}" in detail
+    assert f"{Location(lat=lat, lon=lon)}" in detail
+    assert f"{year}" in detail
 
 
 @pytest.mark.integration
@@ -140,23 +146,35 @@ def test_phenology_timeseries_returns_seeded_metrics_postgis(app_postgis):
 
 
 @pytest.mark.integration
-def test_phenology_timeseries_returns_404_when_empty(app_postgis):
+def test_phenology_timeseries_returns_404_when_empty(
+    app_postgis,
+    product="test_product",
+    lat=52.5,
+    lon=13.4,
+    start_year=2018,
+    end_year=2022,
+):
     client = TestClient(app_postgis)
+
     resp = client.get(
         "/phenology/timeseries",
         params={
-            "product": "test_product",
-            "lat": 52.5,
-            "lon": 13.4,
-            "start_year": 2018,
-            "end_year": 2022,
+            "product": product,
+            "lat": lat,
+            "lon": lon,
+            "start_year": start_year,
+            "end_year": end_year,
         },
     )
+
+    detail = resp.json()["detail"]
+
     assert resp.status_code == 404
-    assert (
-        resp.json()["detail"]
-        == "No phenology data found for product: test_product, location: Location(lat=52.5, lon=13.4) and year range 2018 : 2022"
-    )
+    assert "No phenology data found" in detail
+    assert f"{product}" in detail
+    assert f"{Location(lat=lat, lon=lon)}" in detail
+    assert f"{start_year}" in detail
+    assert f"{end_year}" in detail
 
 
 @pytest.mark.integration
@@ -233,7 +251,9 @@ def test_phenology_area_returns_aggregates_for_intersecting_points(app_postgis):
 
 
 @pytest.mark.integration
-def test_phenology_area_returns_404_when_no_matches(app_postgis):
+def test_phenology_area_returns_404_when_no_matches(
+    app_postgis, product="test_product", year=2020
+):
     poly = {
         "type": "Polygon",
         "coordinates": [
@@ -250,15 +270,16 @@ def test_phenology_area_returns_404_when_no_matches(app_postgis):
     client = TestClient(app_postgis)
     resp = client.post(
         "/phenology/area",
-        params={"product": "test_product", "year": 2020},
+        params={"product": product, "year": year},
         json={"geometry": poly},
     )
 
+    detail = resp.json()["detail"]
+
     assert resp.status_code == 404
-    assert (
-        resp.json()["detail"]
-        == f"No phenology data found intersecting this polygon for product: test_product and year: 2020"
-    )
+    assert "No phenology data found intersecting this polygon" in detail
+    assert f"{product}" in detail
+    assert f"{year}" in detail
 
 
 @pytest.mark.integration

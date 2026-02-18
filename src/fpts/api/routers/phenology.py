@@ -1,21 +1,21 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from typing import Literal
-from psycopg import Error as PsycopgError
 
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
+
+from fpts.api.dependencies import get_phenology_compute_service, get_query_service
 from fpts.api.schemas import (
+    GeoJSONPolygonRequest,
     LocationSchema,
+    PhenologyAreaStatsResponse,
     PhenologyPointResponse,
     PhenologyTimeseriesResponse,
     PhenologyYearMetricSchema,
-    GeoJSONPolygonRequest,
-    PhenologyAreaStatsResponse,
     SeasonLengthStat,
 )
-from fpts.api.dependencies import get_query_service, get_phenology_compute_service
 from fpts.domain.models import Location
+from fpts.processing.phenology_service import PhenologyComputationService
 from fpts.query.service import QueryService
 from fpts.utils.logging import get_logger
-from fpts.processing.phenology_service import PhenologyComputationService
 
 logger = get_logger(__name__)
 
@@ -33,7 +33,11 @@ def get_point_phenology(
     year: int = Query(..., ge=2000, le=2027, description="Year we want to analyse."),
     mode: Literal["repo", "compute", "auto"] = Query(
         "repo",
-        description="Execution mode - where to fetch metrics from. Return precomputed value from 'repo', 'compute' it as part of request, or try to look up in repo but fall back to computing it with mode = 'auto'",
+        description=(
+            "Execution mode. 'repo' returns precomputed metrics, "
+            "'compute' calculates on request, and "
+            "'auto' tries repo first then falls back to compute."
+        ),
     ),
     product: str = Query("ndvi_synth", min_length=1, description="Product to analyse."),
     threshold_frac: float = Query(
@@ -57,10 +61,12 @@ def get_point_phenology(
       Computes from NDVI raster stack on the fly (currently synthetic NDVI stack).
 
     mode=auto:
-      Tries to read from repo, and falls back to compute from NDVI raster stack on the fly (currently synthetic NDVI stack).
+      Tries to read from repo, and falls back to compute from NDVI raster stack on the fly
+      (currently synthetic NDVI stack).
     """
     logger.info(
-        f"Phenology point query received: lat: {lat}, lon: {lon}, year: {year}, mode: {mode}, product: {product}, threshold_frac: {threshold_frac}"
+        f"Phenology point query received: lat: {lat}, lon: {lon}, year: {year}, "
+        f"mode: {mode}, product: {product}, threshold_frac: {threshold_frac}"
     )
 
     location = Location(lat=lat, lon=lon)
@@ -72,7 +78,10 @@ def get_point_phenology(
         if metric is None:
             raise HTTPException(
                 status_code=404,
-                detail=f"No phenology data found for product: {product}, location: Location(lat={lat}, lon={lon}) and year: {year}",
+                detail=(
+                    f"No phenology data found for product: {product}, "
+                    f"location: Location(lat={lat}, lon={lon}) and year: {year}",
+                ),
             )
 
     elif mode == "compute":
@@ -134,7 +143,8 @@ def get_point_timeseries(
     query_service: QueryService = Depends(get_query_service),
 ):
     logger.info(
-        f"Phenology timeseries query received: lat: {lat}, lon: {lon}, start_year: {start_year}, end_year: {end_year}, product: {product}"
+        f"Phenology timeseries query received: lat: {lat}, lon: {lon}, "
+        f"start_year: {start_year}, end_year: {end_year}, product: {product}"
     )
 
     if end_year < start_year:
@@ -154,7 +164,10 @@ def get_point_timeseries(
     if not metrics:
         raise HTTPException(
             status_code=404,
-            detail=f"No phenology data found for product: {product}, location: {location} and year range {start_year} : {end_year}",
+            detail=(
+                f"No phenology data found for product: {product}, "
+                "location: {location} and year range {start_year} : {end_year}",
+            ),
         )
 
     return PhenologyTimeseriesResponse(
@@ -212,7 +225,10 @@ def get_area_phenology_stats(
     if stats is None:
         raise HTTPException(
             status_code=404,
-            detail=f"No phenology data found intersecting this polygon for product: {product} and year: {year}",
+            detail=(
+                "No phenology data found intersecting this polygon "
+                f"for product: {product} and year: {year}",
+            ),
         )
 
     print(f"Stats: {stats}")

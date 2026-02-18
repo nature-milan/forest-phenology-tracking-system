@@ -8,8 +8,6 @@ import fpts.ingestion.mod13q1 as mod13q1
 from fpts.config.settings import Settings
 from fpts.ingestion.mod13q1 import Mod13Q1IngestionService
 
-from fpts.config.settings import Settings
-
 ndvi_key = Settings().mod13q1_ndvi_asset_key
 
 
@@ -81,10 +79,9 @@ def test_build_plan_extracts_ndvi_and_sorts_by_doy(monkeypatch):
 
 def test_write_manifest_is_json(tmp_path: Path):
     svc = Mod13Q1IngestionService(settings=Settings())
-    plan = svc.build_plan  # just to silence unused import, we won't call network
 
     # Minimal manifest write test (no plan building)
-    from fpts.ingestion.mod13q1 import Mod13Q1Plan, Mod13Q1AssetRef
+    from fpts.ingestion.mod13q1 import Mod13Q1AssetRef, Mod13Q1Plan
 
     pl = Mod13Q1Plan(
         collection="c",

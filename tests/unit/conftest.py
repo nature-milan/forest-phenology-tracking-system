@@ -1,7 +1,7 @@
 import pytest
 
-from fpts.config.settings import Settings
 from fpts.api.main import create_app
+from fpts.config.settings import Settings
 
 
 @pytest.fixture

@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Tuple
 
 from fpts.domain.models import Location, PhenologyMetric
 from fpts.storage.phenology_repository import PhenologyRepository

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import sys
 import argparse
+import sys
 
 from fpts.config.settings import Settings
 from fpts.processing.batch.process_year import GridSpec, process_year_to_db

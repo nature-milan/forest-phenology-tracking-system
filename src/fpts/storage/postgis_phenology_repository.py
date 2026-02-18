@@ -7,14 +7,13 @@ from psycopg.rows import dict_row
 from psycopg.types.json import Json
 
 from fpts.domain.models import Location, PhenologyMetric
-from fpts.storage.phenology_repository import PhenologyRepository
-
 from fpts.sql.queries.phenology import (
-    UPSERT_MANY,
+    GET_AREA_STATS,
     GET_METRIC_FOR_LOCATION,
     GET_TIMESERIES_FOR_LOCATION,
-    GET_AREA_STATS,
+    UPSERT_MANY,
 )
+from fpts.storage.phenology_repository import PhenologyRepository
 
 
 class PostGISPhenologyRepository(PhenologyRepository):

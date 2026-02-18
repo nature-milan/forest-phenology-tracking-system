@@ -1,11 +1,9 @@
 from fpts.config.settings import Settings
-
-from fpts.query.service import QueryService
-from fpts.processing.raster_service import RasterService
 from fpts.processing.phenology_service import PhenologyComputationService
-
-from fpts.storage.local_raster_repository import LocalRasterRepository
+from fpts.processing.raster_service import RasterService
+from fpts.query.service import QueryService
 from fpts.storage.in_memory_repository import InMemoryPhenologyRepository
+from fpts.storage.local_raster_repository import LocalRasterRepository
 from fpts.storage.postgis_phenology_repository import PostGISPhenologyRepository
 
 

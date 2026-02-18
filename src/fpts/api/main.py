@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 
-from fpts.config.settings import Settings
-from fpts.utils.logging import setup_logging, get_logger
-from fpts.api.routers.phenology import router as phenology_router
 from fpts.api.routers.debug import router as debug_router
+from fpts.api.routers.phenology import router as phenology_router
 from fpts.api.wiring import wire_in_memory_services, wire_postgis_services
+from fpts.config.settings import Settings
+from fpts.utils.logging import get_logger, setup_logging
 
 logger = get_logger(__name__)
 

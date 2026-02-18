@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from fpts.api.dependencies import get_raster_service
 from fpts.domain.models import Location
 from fpts.processing.raster_service import RasterService
-from fpts.api.dependencies import get_raster_service
 from fpts.utils.logging import get_logger
 
 logger = get_logger(__name__)

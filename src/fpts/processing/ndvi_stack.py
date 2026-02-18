@@ -10,7 +10,6 @@ import xarray as xr
 
 from fpts.domain.models import Location
 
-
 _DOY_RE = re.compile(r"doy_(\d{3})\.tif$")
 
 

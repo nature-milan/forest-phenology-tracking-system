@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-import json
-import requests
 import hashlib
+import json
 import os
-
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Iterable
+
+import requests
 from pystac_client import Client
 
 try:
@@ -152,7 +152,8 @@ class Mod13Q1IngestionService:
             if ndvi_key not in item_assets:
                 # fail fast so we learn the exact asset key early
                 raise ValueError(
-                    f"Expected 'ndvi' asset not found in item {signed.get('id')}; keys={list(item_assets)}"
+                    "Expected 'ndvi' asset not found in item "
+                    f"{signed.get('id')}; keys={list(item_assets)}"
                 )
 
             href = item_assets[ndvi_key]["href"]

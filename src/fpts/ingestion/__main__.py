@@ -52,7 +52,8 @@ def main() -> None:
             verify_existing=not args.no_verify_existing,
         )
         print(
-            f"Fetched {len(records)} files into {args.data_dir / 'raw' / args.product / str(plan.year)}"
+            f"Fetched {len(records)} files into "
+            f"{args.data_dir / 'raw' / args.product / str(plan.year)}"
         )
 
 

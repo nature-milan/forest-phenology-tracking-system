@@ -5,8 +5,8 @@ import rasterio
 from fastapi.testclient import TestClient
 from rasterio.transform import from_origin
 
-from fpts.config.settings import Settings
 from fpts.api.main import create_app
+from fpts.config.settings import Settings
 
 
 def _write_geotiff(path: Path, data: np.ndarray, transform) -> None:
