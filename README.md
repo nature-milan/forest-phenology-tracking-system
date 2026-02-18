@@ -147,8 +147,8 @@ Run tests:
 
 Production Hardening:
 
--   Docker + docker-compose (API + PostGIS)
--   GitHub Actions CI (lint + tests + coverage)
+-   Docker + docker-compose (API + PostGIS) ✅
+-   GitHub Actions CI (lint + tests + coverage) 
 -   Structured logging
 -   Request logging middleware
 -   Optional Prometheus metrics endpoint

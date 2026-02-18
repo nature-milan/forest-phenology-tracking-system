@@ -1,0 +1,63 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgis:
+        image: postgis/postgis:15-3.4
+        env:
+          POSTGRES_DB: fpts_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 55432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d fpts_test"
+          --health-interval 2s
+          --health-timeout 2s
+          --health-retries 30
+
+    env:
+      # used by tests/integration/conftest.py
+      FPTS_TEST_DATABASE_DSN: postgresql://postgres:postgres@localhost:55432/fpts_test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install system deps (psql client)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends postgresql-client
+          psql --version
+
+      - name: Install Poetry
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry==1.8.3
+
+      - name: Install dependencies
+        run: |
+          poetry install --no-interaction --no-ansi
+
+      - name: Init DB schema (PostGIS + tables)
+        run: |
+          psql "$FPTS_TEST_DATABASE_DSN" -f src/fpts/sql/ddl/phenology_metrics.sql
+
+      - name: Lint (ruff)
+        run: |
+          poetry run ruff check src tests
+
+      - name: Test (pytest + coverage)
+        run: |
+          poetry run pytest -q --cov=src/fpts --cov-report=term-missing
