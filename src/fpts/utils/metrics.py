@@ -24,9 +24,16 @@ class PrometheusMetricsMiddleware(BaseHTTPMiddleware):
         start = time.perf_counter()
         response = await call_next(request)
 
+        # Avoid self-scrape noise
+        if request.url.path == "/metrics":
+            return response
+
         duration = time.perf_counter() - start
         method = request.method
-        path = request.url.path
+
+        route = request.scope.get("route")
+        path = getattr(route, "path", request.url.path)
+
         status_code = str(response.status_code)
 
         HTTP_REQUESTS_TOTAL.labels(
