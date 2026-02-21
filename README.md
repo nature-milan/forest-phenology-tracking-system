@@ -151,7 +151,7 @@ Production Hardening:
 -   GitHub Actions CI (lint + tests + coverage) ✅
 -   Structured logging ✅
 -   Request logging middleware ✅
--   Optional Prometheus metrics endpoint
+-   Optional Prometheus metrics endpoint ✅
 -   Basic caching strategy
 
 ------------------------------------------------------------------------
