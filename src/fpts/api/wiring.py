@@ -40,7 +40,7 @@ def wire_in_memory_services(app, settings: Settings) -> None:
     app.state.phenology_repo = repo
     app.state.query_service = QueryService(
         repository=repo,
-        area_stats_cache=app.stats.area_stats_cache,
+        area_stats_cache=app.state.area_stats_cache,
         timeseries_cache=app.state.timeseries_cache,
     )
 
@@ -76,6 +76,6 @@ def wire_postgis_services(app, settings: Settings) -> None:
     app.state.phenology_repo = repo
     app.state.query_service = QueryService(
         repository=repo,
-        area_stats_cache=app.stats.area_stats_cache,
+        area_stats_cache=app.state.area_stats_cache,
         timeseries_cache=app.state.timeseries_cache,
     )
