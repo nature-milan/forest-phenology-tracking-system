@@ -57,3 +57,34 @@ def extract_ndvi_timeseries(stack: xr.DataArray, location: Location) -> NdviTime
     doys = [int(time) for time in sampled["time"].values.tolist()]
     ndvi = [float(val) for val in values.tolist()]
     return NdviTimeSeries(doys=doys, ndvi=ndvi)
+
+
+def extract_ndvi_timeseries_batch(
+    stack: xr.DataArray, locations: Sequence[Location]
+) -> list[NdviTimeSeries]:
+    """
+    Vectorized extraction for many lat/lon points (nearest pixel).
+
+    Returns one NdviTimeSeries per input location in the same order.
+    """
+    if not locations:
+        return []
+
+    lons = [loc.lon for loc in locations]
+    lats = [loc.lat for loc in locations]
+
+    # dims after sel: time, band, points
+    sampled = stack.sel(
+        x=xr.DataArray(lons, dims="points"),
+        y=xr.DataArray(lats, dims="points"),
+        method="nearest",
+    )
+
+    values = sampled.isel(band=0).values  # shape: (time, points)
+    doys = [int(t) for t in sampled["time"].values.tolist()]
+
+    out: list[NdviTimeSeries] = []
+    for i in range(len(locations)):
+        ndvi = [float(v) for v in values[:, i].tolist()]
+        out.append(NdviTimeSeries(doys=doys, ndvi=ndvi))
+    return out

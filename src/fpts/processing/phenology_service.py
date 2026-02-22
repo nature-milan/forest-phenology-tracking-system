@@ -5,12 +5,12 @@ from typing import Optional
 
 import xarray as xr
 
+from fpts.cache.keys import point_metric_cache_key
+from fpts.cache.ttl_cache import InMemoryTTLCache
 from fpts.domain.models import Location, PhenologyMetric
 from fpts.processing.ndvi_stack import extract_ndvi_timeseries, load_ndvi_stack
 from fpts.processing.phenology_algorithm import compute_sos_eos_threshold
 from fpts.storage.raster_repository import RasterRepository
-from fpts.cache.keys import point_metric_cache_key
-from fpts.cache.ttl_cache import InMemoryTTLCache
 
 
 def _date_from_doy(year: int, doy: int) -> date:

@@ -1,13 +1,12 @@
+from fpts.cache.ttl_cache import InMemoryTTLCache
 from fpts.config.settings import Settings
+from fpts.domain.models import PhenologyMetric
 from fpts.processing.phenology_service import PhenologyComputationService
 from fpts.processing.raster_service import RasterService
 from fpts.query.service import QueryService
 from fpts.storage.in_memory_repository import InMemoryPhenologyRepository
 from fpts.storage.local_raster_repository import LocalRasterRepository
 from fpts.storage.postgis_phenology_repository import PostGISPhenologyRepository
-
-from fpts.cache.ttl_cache import InMemoryTTLCache
-from fpts.domain.models import PhenologyMetric
 
 
 def wire_in_memory_services(app, settings: Settings) -> None:
