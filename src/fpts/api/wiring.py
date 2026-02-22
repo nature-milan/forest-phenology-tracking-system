@@ -18,11 +18,11 @@ def wire_in_memory_services(app, settings: Settings) -> None:
         maxsize=50_000,
         ttl_seconds=300.0,
     )
-    app.state.area_stats_cache = InMemoryTTLCache[str, PhenologyMetric](
+    app.state.area_stats_cache = InMemoryTTLCache[str, dict](
         maxsize=5_000,
         ttl_seconds=3600,
     )
-    app.state.timeseries_cache = InMemoryTTLCache[str, PhenologyMetric](
+    app.state.timeseries_cache = InMemoryTTLCache[str, list[PhenologyMetric]](
         maxsize=10_000,
         ttl_seconds=900,
     )
@@ -38,7 +38,11 @@ def wire_in_memory_services(app, settings: Settings) -> None:
     # In memory phenology repo to store and read metrics.
     repo = InMemoryPhenologyRepository()
     app.state.phenology_repo = repo
-    app.state.query_service = QueryService(repository=repo)
+    app.state.query_service = QueryService(
+        repository=repo,
+        area_stats_cache=app.stats.area_stats_cache,
+        timeseries_cache=app.state.timeseries_cache,
+    )
 
 
 def wire_postgis_services(app, settings: Settings) -> None:
@@ -50,11 +54,11 @@ def wire_postgis_services(app, settings: Settings) -> None:
         maxsize=50_000,
         ttl_seconds=300.0,
     )
-    app.state.area_stats_cache = InMemoryTTLCache[str, PhenologyMetric](
+    app.state.area_stats_cache = InMemoryTTLCache[str, dict](
         maxsize=5_000,
         ttl_seconds=3600,
     )
-    app.state.timeseries_cache = InMemoryTTLCache[str, PhenologyMetric](
+    app.state.timeseries_cache = InMemoryTTLCache[str, list[PhenologyMetric]](
         maxsize=10_000,
         ttl_seconds=900,
     )
@@ -70,4 +74,8 @@ def wire_postgis_services(app, settings: Settings) -> None:
     # PostGIS repo to store and read metrics.
     repo = PostGISPhenologyRepository(dsn=settings.database_dsn)
     app.state.phenology_repo = repo
-    app.state.query_service = QueryService(repository=repo)
+    app.state.query_service = QueryService(
+        repository=repo,
+        area_stats_cache=app.stats.area_stats_cache,
+        timeseries_cache=app.state.timeseries_cache,
+    )
