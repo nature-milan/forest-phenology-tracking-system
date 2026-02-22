@@ -154,6 +154,8 @@ Production Hardening:
 -   Optional Prometheus metrics endpoint ✅
 -   Basic caching strategy
 
+- Logging (change logging back to structured logging for older messages)
+
 ------------------------------------------------------------------------
 
 ## Future Polish
