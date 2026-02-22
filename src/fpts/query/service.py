@@ -8,6 +8,9 @@ from fpts.cache.keys import (
 from fpts.cache.ttl_cache import InMemoryTTLCache
 from fpts.domain.models import Location, PhenologyMetric
 from fpts.storage.phenology_repository import PhenologyRepository
+from fpts.utils.logging import get_logger
+
+logger = get_logger("fpts.cache")
 
 
 class QueryService:
@@ -49,7 +52,12 @@ class QueryService:
             )
             cached = self._point_cache.get(key)
             if cached is not None:
+                logger.debug(
+                    "cache_hit", extra={"cache": "point_metric_repo", "key": key}
+                )
                 return cached
+
+            logger.debug("cache_miss", extra={"cache": "point_metric_repo", "key": key})
 
         metric = self._repository.get_metric_for_location(
             product=product, location=location, year=year
@@ -78,7 +86,10 @@ class QueryService:
             )
             cached = self._timeseries_cache.get(key)
             if cached is not None:
+                logger.debug("cache_hit", extra={"cache": "timeseries", "key": key})
                 return cached
+
+            logger.debug("cache_miss", extra={"cache": "timeseries", "key": key})
 
         data = self._repository.get_timeseries_for_location(
             product=product, location=location, start_year=start_year, end_year=end_year
@@ -112,7 +123,10 @@ class QueryService:
 
             cached = self._area_stats_cache.get(key)
             if cached is not None:
+                logger.debug("cache_hit", extra={"cache": "area_stats", "key": key})
                 return cached
+
+            logger.debug("cache_miss", extra={"cache": "area_stats", "key": key})
 
         stats = self._repository.get_area_stats(
             product=product,
