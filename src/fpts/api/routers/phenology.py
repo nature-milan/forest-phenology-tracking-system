@@ -8,6 +8,7 @@ from fpts.api.schemas import (
     LocationSchema,
     PhenologyAreaStatsResponse,
     PhenologyPointResponse,
+    PhenologyPointsRequest,
     PhenologyTimeseriesResponse,
     PhenologyYearMetricSchema,
     SeasonLengthStat,
@@ -118,6 +119,38 @@ def get_point_phenology(
         season_length=metric.season_length,
         is_forest=metric.is_forest,
     )
+
+
+@router.post("/points", response_model=list[PhenologyPointResponse])
+def get_points_phenology(
+    body: PhenologyPointsRequest = Body(...),
+    year: int = Query(..., ge=2000, le=2027, description="Year we want to analyse."),
+    product: str = Query("ndvi_synth", min_length=1, description="Product to analyse."),
+    threshold_frac: float = Query(
+        0.5, gt=0.0, lt=1.0, description="Fraction value used in SOS/EOS limits."
+    ),
+    compute_service: PhenologyComputationService = Depends(
+        get_phenology_compute_service
+    ),
+):
+    locations = [Location(lat=loc.lat, lon=loc.lon) for loc in body.locations]
+    metrics = compute_service.compute_points_phenology(
+        product=product,
+        year=year,
+        locations=locations,
+        threshold_frac=threshold_frac,
+    )
+    return [
+        PhenologyPointResponse(
+            year=m.year,
+            location=LocationSchema(lat=m.location.lat, lon=m.location.lon),
+            sos_date=m.sos_date,
+            eos_date=m.eos_date,
+            season_length=m.season_length,
+            is_forest=m.is_forest,
+        )
+        for m in metrics
+    ]
 
 
 @router.get(

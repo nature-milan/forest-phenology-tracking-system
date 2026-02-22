@@ -1,14 +1,18 @@
 from __future__ import annotations
 
 from datetime import date, timedelta
-from typing import Optional
+from typing import Optional, Sequence
 
 import xarray as xr
 
 from fpts.cache.keys import point_metric_cache_key
 from fpts.cache.ttl_cache import InMemoryTTLCache
 from fpts.domain.models import Location, PhenologyMetric
-from fpts.processing.ndvi_stack import extract_ndvi_timeseries, load_ndvi_stack
+from fpts.processing.ndvi_stack import (
+    extract_ndvi_timeseries,
+    extract_ndvi_timeseries_batch,
+    load_ndvi_stack,
+)
 from fpts.processing.phenology_algorithm import compute_sos_eos_threshold
 from fpts.storage.raster_repository import RasterRepository
 
@@ -97,3 +101,62 @@ class PhenologyComputationService:
             self._point_cache.set(point_cache_key, metric)
 
         return metric
+
+    def compute_points_phenology(
+        self,
+        product: str,
+        year: int,
+        locations: Sequence[Location],
+        threshold_frac: float = 0.5,
+        is_forest: bool = True,
+    ) -> list[PhenologyMetric]:
+        """
+        Batch compute phenology metrics for many points.
+
+        Key optimization:
+            - load stack once (cached by (product, year))
+            - sample all points in one vectorized operation
+        """
+        if not locations:
+            return []
+
+        key = (product, year)
+
+        if key in self._stack_cache:
+            stack = self._stack_cache[key]
+        else:
+            paths = self._raster_repo.list_ndvi_stack_paths(product=product, year=year)
+            if not paths:
+                raise FileNotFoundError(
+                    f"No NDVI stack files found for product={product}, year={year}"
+                )
+            stack = load_ndvi_stack(paths)
+            self._stack_cache[key] = stack
+
+        series_list = extract_ndvi_timeseries_batch(stack, locations)
+
+        metrics: list[PhenologyMetric] = []
+        for loc, ts in zip(locations, series_list, strict=True):
+            dates = compute_sos_eos_threshold(
+                ndvi=ts.ndvi, doys=ts.doys, frac=threshold_frac
+            )
+
+            sos_date: Optional[date] = (
+                _date_from_doy(year, dates.sos_doy) if dates.sos_doy else None
+            )
+            eos_date: Optional[date] = (
+                _date_from_doy(year, dates.eos_doy) if dates.eos_doy else None
+            )
+
+            metrics.append(
+                PhenologyMetric(
+                    year=year,
+                    location=loc,
+                    sos_date=sos_date,
+                    eos_date=eos_date,
+                    season_length=dates.season_length,
+                    is_forest=is_forest,
+                )
+            )
+
+        return metrics
