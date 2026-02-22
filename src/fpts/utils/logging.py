@@ -5,6 +5,13 @@ from typing import Optional
 from pythonjsonlogger.json import JsonFormatter
 
 
+class RequestIdFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        if not hasattr(record, "request_id"):
+            record.request_id = "-"
+        return True
+
+
 def setup_logging(level: str = "INFO", *, json: bool = False) -> None:
     """
     Configure root logger for the application.
@@ -14,6 +21,7 @@ def setup_logging(level: str = "INFO", *, json: bool = False) -> None:
         return
 
     handler = logging.StreamHandler(sys.stdout)
+    handler.addFilter(RequestIdFilter())
     log_level = getattr(logging, level.upper(), logging.INFO)
 
     if json:
