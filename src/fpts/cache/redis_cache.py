@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from datetime import date, datetime
-from typing import Any, Optional, TypeVar, Generic
+from typing import Any, Generic, Optional, TypeVar
 
 import redis
 
