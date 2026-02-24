@@ -10,7 +10,7 @@ from fpts.domain.models import Location, PhenologyMetric
 from fpts.storage.phenology_repository import PhenologyRepository
 from fpts.utils.logging import get_logger
 
-logger = get_logger("fpts.cache")
+logger = get_logger("fpts.cache.QueryService")
 
 
 class QueryService:
@@ -51,6 +51,9 @@ class QueryService:
                 threshold_frac=None,
             )
             cached = self._point_cache.get(key)
+            logger.debug(
+                "cache_lookup", extra={"cache": "point_metric_repo", "key": key}
+            )
             if cached is not None:
                 logger.debug(
                     "cache_hit", extra={"cache": "point_metric_repo", "key": key}
@@ -85,6 +88,7 @@ class QueryService:
                 end_year=end_year,
             )
             cached = self._timeseries_cache.get(key)
+            logger.debug("cache_lookup", extra={"cache": "timeseries_repo", "key": key})
             if cached is not None:
                 logger.debug("cache_hit", extra={"cache": "timeseries", "key": key})
                 return cached
@@ -122,6 +126,7 @@ class QueryService:
             )
 
             cached = self._area_stats_cache.get(key)
+            logger.debug("cache_lookup", extra={"cache": "area_stats_repo", "key": key})
             if cached is not None:
                 logger.debug("cache_hit", extra={"cache": "area_stats", "key": key})
                 return cached

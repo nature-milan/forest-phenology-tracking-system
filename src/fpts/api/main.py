@@ -16,6 +16,12 @@ logger = get_logger(__name__)
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or Settings()
     setup_logging(level=settings.log_level, json=(settings.environment == "production"))
+    setup_logging(
+        level=settings.log_level,
+        json=(settings.environment == "production"),
+        cache_debug=True,
+    )
+    logger.debug("debug_logging_enabled")
 
     app = FastAPI(title=settings.app_name)
     app.state.settings = settings
