@@ -1,12 +1,17 @@
 from fpts.cache.ttl_cache import InMemoryTTLCache
-from fpts.config.settings import Settings
-from fpts.domain.models import PhenologyMetric
+from fpts.cache.redis_cache import RedisTTLCache
+from fpts.cache.codecs import encode_metric, decode_metric
+
 from fpts.processing.phenology_service import PhenologyComputationService
 from fpts.processing.raster_service import RasterService
-from fpts.query.service import QueryService
+
 from fpts.storage.in_memory_repository import InMemoryPhenologyRepository
 from fpts.storage.local_raster_repository import LocalRasterRepository
 from fpts.storage.postgis_phenology_repository import PostGISPhenologyRepository
+
+from fpts.config.settings import Settings
+from fpts.domain.models import PhenologyMetric
+from fpts.query.service import QueryService
 
 
 def wire_in_memory_services(app, settings: Settings) -> None:
@@ -14,10 +19,19 @@ def wire_in_memory_services(app, settings: Settings) -> None:
     Wiring for development/testing.
     """
     # Create caches
-    app.state.point_metric_cache = InMemoryTTLCache[str, PhenologyMetric](
-        maxsize=50_000,
-        ttl_seconds=300.0,
-    )
+    if settings.cache_backend == "redis":
+        app.state.point_metric_cache = RedisTTLCache[PhenologyMetric](
+            redis_url=settings.redis_url,
+            ttl_seconds=300,
+            dumps=encode_metric,
+            loads=lambda obj: decode_metric(obj),  # obj is dict
+            key_prefix="fpts:",
+        )
+    else:
+        app.state.point_metric_cache = InMemoryTTLCache[str, PhenologyMetric](
+            maxsize=50_000, ttl_seconds=300
+        )
+
     app.state.area_stats_cache = InMemoryTTLCache[str, dict](
         maxsize=5_000,
         ttl_seconds=3600,

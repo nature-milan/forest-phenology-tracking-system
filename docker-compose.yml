@@ -16,21 +16,33 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./src/fpts/sql/ddl:/docker-entrypoint-initdb.d:ro
+  redis:
+    image: redis:7-alpine
+    container_name: fpts-redis
+    ports:
+      - "6379:6379"
   api:
     build: .
     container_name: fpts-api
     environment:
       ENVIRONMENT: production
       LOG_LEVEL: info
+      DATA_DIR: /app/data
       PHENOLOGY_REPO_BACKEND: postgis
       ENABLE_DEBUG_ROUTES: "false"
       DATABASE_DSN: postgresql://postgres:postgres@db:5432/fpts
       ENABLE_METRICS: "true"
+      CACHE_BACKEND: redis
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - ./data:/app/data:ro
     ports:
       - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
 
 volumes:
   db_data:

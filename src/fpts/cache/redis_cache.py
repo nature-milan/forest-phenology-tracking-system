@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from datetime import date, datetime
-from typing import Any, Generic, Optional, TypeVar
+from typing import Callable, Generic, Optional, TypeVar
 
 import redis
 
@@ -10,40 +10,41 @@ K = TypeVar("K")
 V = TypeVar("V")
 
 
-def _json_default(obj: Any) -> Any:
-    if isinstance(obj, (date, datetime)):
-        return obj.isoformat()
-
-    # Pydantic v2 models
-    if hasattr(obj, "model_dump"):
-        return obj.model_dump()
-
-    # Dataclasses / other objects: last resort
-    if hasattr(obj, "__dict__"):
-        return obj.__dict__
-
-    raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
-
-
-class RedisTTLCache(Generic[K, V]):
+class RedisTTLCache(Generic[V]):
     """
-    Minimal Redis-backed TTL cache.
+    Redis-backed TTL cache with pluggable (de)serialization.
 
-    - Stores values as JSON strings
-    - Uses SETEX for TTL
+    - Keys are stored as strings
+    - Values are stored as JSON strings
+    - TTL enforced by Redis via SETEX
     """
 
-    def __init__(self, *, redis_url: str, ttl_seconds: int) -> None:
+    def __init__(
+        self,
+        *,
+        redis_url: str,
+        ttl_seconds: int,
+        dumps: Callable[[V], object],
+        loads: Callable[[object], V],
+        key_prefix: str = "",
+    ) -> None:
         self._ttl_seconds = ttl_seconds
-        # decode_responses=True => we read/write strings instead of bytes
+        self._dumps = dumps
+        self._loads = loads
+        self._prefix = key_prefix
         self._client = redis.Redis.from_url(redis_url, decode_responses=True)
 
-    def get(self, key: K) -> Optional[V]:
-        raw = self._client.get(str(key))
+    def _k(self, key: str) -> str:
+        return f"{self._prefix}{key}"
+
+    def get(self, key: str) -> Optional[V]:
+        raw = self._client.get(self._k(key))
         if raw is None:
             return None
-        return json.loads(raw)
+        payload = json.loads(raw)
+        return self._loads(payload)
 
-    def set(self, key: K, value: V) -> None:
-        payload = json.dumps(value, default=_json_default, separators=(",", ":"))
-        self._client.setex(str(key), self._ttl_seconds, payload)
+    def set(self, key: str, value: V) -> None:
+        payload_obj = self._dumps(value)
+        raw = json.dumps(payload_obj, separators=(",", ":"))
+        self._client.setex(self._k(key), self._ttl_seconds, raw)

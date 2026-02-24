@@ -25,4 +25,8 @@ class Settings(BaseSettings):
     # Database
     database_dsn: str = "postgresql://postgres:postgres@localhost:5432/fpts"
 
+    # Cache - Redis
+    cache_backend: Literal["memory", "redis"] = "memory"
+    redis_url: str = "redis://localhost:6379/0"
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
