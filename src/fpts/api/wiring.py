@@ -51,6 +51,7 @@ def wire_in_memory_services(app, settings: Settings) -> None:
     app.state.phenology_repo = repo
     app.state.query_service = QueryService(
         repository=repo,
+        point_cache=app.state.point_metric_cache,
         area_stats_cache=app.state.area_stats_cache,
         timeseries_cache=app.state.timeseries_cache,
     )
@@ -61,10 +62,19 @@ def wire_postgis_services(app, settings: Settings) -> None:
     Wiring for Production.
     """
     # Create caches
-    app.state.point_metric_cache = InMemoryTTLCache[str, PhenologyMetric](
-        maxsize=50_000,
-        ttl_seconds=300.0,
-    )
+    if settings.cache_backend == "redis":
+        app.state.point_metric_cache = RedisTTLCache[PhenologyMetric](
+            redis_url=settings.redis_url,
+            ttl_seconds=300,
+            dumps=encode_metric,
+            loads=lambda obj: decode_metric(obj),  # obj is dict
+            key_prefix="fpts:",
+        )
+    else:
+        app.state.point_metric_cache = InMemoryTTLCache[str, PhenologyMetric](
+            maxsize=50_000, ttl_seconds=300
+        )
+
     app.state.area_stats_cache = InMemoryTTLCache[str, dict](
         maxsize=5_000,
         ttl_seconds=3600,
@@ -87,6 +97,7 @@ def wire_postgis_services(app, settings: Settings) -> None:
     app.state.phenology_repo = repo
     app.state.query_service = QueryService(
         repository=repo,
+        point_cache=app.state.point_metric_cache,
         area_stats_cache=app.state.area_stats_cache,
         timeseries_cache=app.state.timeseries_cache,
     )

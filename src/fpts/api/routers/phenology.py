@@ -74,7 +74,10 @@ def get_point_phenology(
 
     if mode == "repo":
         metric = query_service.get_point_metric(
-            product=product, location=location, year=year
+            product=product,
+            location=location,
+            year=year,
+            threshold_frac=threshold_frac,
         )
         if metric is None:
             raise HTTPException(
@@ -98,7 +101,10 @@ def get_point_phenology(
 
     else:  # mode == "auto"
         metric = query_service.get_point_metric(
-            product=product, location=location, year=year
+            product=product,
+            location=location,
+            year=year,
+            threshold_frac=threshold_frac,
         )
         if metric is None:
             try:

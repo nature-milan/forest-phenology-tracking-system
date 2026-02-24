@@ -5,6 +5,8 @@ import json
 
 from fpts.domain.models import Location
 
+DEFAULT_THRESHOLD_FRAC = 0.5
+
 
 def _stable_json_hash(obj: dict) -> str:
     """
@@ -46,11 +48,10 @@ def timeseries_cache_key(
 
 def point_metric_cache_key(
     *,
-    source: str,  # "repo" or "compute"
     product: str,
     year: int,
     location: Location,
-    threshold_frac: float | None,
+    threshold_frac: float,
 ) -> str:
     """
     Normalize floats so equivalent requests map to the same key.
@@ -60,5 +61,5 @@ def point_metric_cache_key(
     """
     lat = round(location.lat, 6)
     lon = round(location.lon, 6)
-    thr = None if threshold_frac is None else round(threshold_frac, 3)
-    return f"phenology:point:{source}:{product}:{year}:{lat}:{lon}:{thr}"
+    thr = round(threshold_frac, 3)
+    return f"phenology:point:{product}:{year}:{lat}:{lon}:{thr}"

@@ -5,6 +5,7 @@ from fpts.cache.keys import (
     point_metric_cache_key,
     timeseries_cache_key,
 )
+from fpts.cache.redis_cache import RedisTTLCache
 from fpts.cache.ttl_cache import InMemoryTTLCache
 from fpts.domain.models import Location, PhenologyMetric
 from fpts.storage.phenology_repository import PhenologyRepository
@@ -27,7 +28,11 @@ class QueryService:
         self,
         repository: PhenologyRepository,
         *,
-        point_cache: InMemoryTTLCache[str, PhenologyMetric] | None = None,
+        point_cache: (
+            RedisTTLCache[PhenologyMetric]
+            | InMemoryTTLCache[str, PhenologyMetric]
+            | None
+        ) = None,
         area_stats_cache: InMemoryTTLCache[str, dict] | None = None,
         timeseries_cache: InMemoryTTLCache[str, list[PhenologyMetric]] | None = None,
     ) -> None:
@@ -37,18 +42,21 @@ class QueryService:
         self._timeseries_cache = timeseries_cache
 
     def get_point_metric(
-        self, product: str, location: Location, year: int
+        self,
+        product: str,
+        location: Location,
+        year: int,
+        threshold_frac: float = 0.5,
     ) -> Optional[PhenologyMetric]:
         """
         Return phenology metric for a single location and year, or None if not found
         """
         if self._point_cache is not None:
             key = point_metric_cache_key(
-                source="repo",
                 product=product,
                 year=year,
                 location=location,
-                threshold_frac=None,
+                threshold_frac=threshold_frac,
             )
             cached = self._point_cache.get(key)
             logger.debug(

@@ -6,6 +6,7 @@ from typing import Optional, Sequence
 import xarray as xr
 
 from fpts.cache.keys import point_metric_cache_key
+from fpts.cache.redis_cache import RedisTTLCache
 from fpts.cache.ttl_cache import InMemoryTTLCache
 from fpts.domain.models import Location, PhenologyMetric
 from fpts.processing.ndvi_stack import (
@@ -15,6 +16,9 @@ from fpts.processing.ndvi_stack import (
 )
 from fpts.processing.phenology_algorithm import compute_sos_eos_threshold
 from fpts.storage.raster_repository import RasterRepository
+from fpts.utils.logging import get_logger
+
+logger = get_logger("fpts.cache.PhenologyService")
 
 
 def _date_from_doy(year: int, doy: int) -> date:
@@ -33,7 +37,11 @@ class PhenologyComputationService:
     def __init__(
         self,
         raster_repo: RasterRepository,
-        point_cache: InMemoryTTLCache[str, PhenologyMetric] | None = None,
+        point_cache: (
+            RedisTTLCache[PhenologyMetric]
+            | InMemoryTTLCache[str, PhenologyMetric]
+            | None
+        ) = None,
     ) -> None:
         self._raster_repo = raster_repo
         self._stack_cache: dict[tuple[str, int], xr.DataArray] = {}
@@ -49,7 +57,6 @@ class PhenologyComputationService:
     ) -> PhenologyMetric:
 
         point_cache_key = point_metric_cache_key(
-            source="compute",
             product=product,
             year=year,
             location=location,
@@ -58,8 +65,21 @@ class PhenologyComputationService:
 
         if self._point_cache is not None:
             cached = self._point_cache.get(point_cache_key)
+            logger.debug(
+                "cache_lookup",
+                extra={"cache": "point_metric_repo", "key": point_cache_key},
+            )
             if cached is not None:
+                logger.debug(
+                    "cache_hit",
+                    extra={"cache": "point_metric_repo", "key": point_cache_key},
+                )
                 return cached
+
+            logger.debug(
+                "cache_miss",
+                extra={"cache": "point_metric_repo", "key": point_cache_key},
+            )
 
         stack_cache_key = (product, year)
 
