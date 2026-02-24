@@ -35,6 +35,7 @@ data/
 datasets/
 raw_data/
 processed_data/
+.vscode/
 
 # ------------------------
 # Cache / Tools
