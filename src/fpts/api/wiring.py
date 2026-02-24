@@ -1,17 +1,14 @@
-from fpts.cache.ttl_cache import InMemoryTTLCache
+from fpts.cache.codecs import decode_metric, encode_metric
 from fpts.cache.redis_cache import RedisTTLCache
-from fpts.cache.codecs import encode_metric, decode_metric
-
+from fpts.cache.ttl_cache import InMemoryTTLCache
+from fpts.config.settings import Settings
+from fpts.domain.models import PhenologyMetric
 from fpts.processing.phenology_service import PhenologyComputationService
 from fpts.processing.raster_service import RasterService
-
+from fpts.query.service import QueryService
 from fpts.storage.in_memory_repository import InMemoryPhenologyRepository
 from fpts.storage.local_raster_repository import LocalRasterRepository
 from fpts.storage.postgis_phenology_repository import PostGISPhenologyRepository
-
-from fpts.config.settings import Settings
-from fpts.domain.models import PhenologyMetric
-from fpts.query.service import QueryService
 
 
 def wire_in_memory_services(app, settings: Settings) -> None:
