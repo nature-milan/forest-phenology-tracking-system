@@ -110,11 +110,42 @@ Prerequisites
 
 ## Run Locally
 
+This will give you the ability to test the /phenoloyg/point API endpoint on any one of repo, compute or auto modes
+
+    a. Generate synthetic data
 ```bash
-poetry install
-poetry run python -m fpts.api
+rm -rf data/raw/ndvi_synth
+
+poetry run python -m fpts.scripts.make_synthetic_ndvi_stack
 ```
 
+    b. Build and get API running (Only use -v tag if you want to clear the volume (databases and tables))
+```bash
+docker compose down -v --remove-orphans
+
+docker compose up --build
+```
+
+    c. Call /phenology/point API endpoint from a new terminal tab
+```bash
+curl "http://localhost:8000/phenology/point?product=ndvi_synth&year=2020&lat=51.495&lon=-0.495&mode=repo"
+```
+
+    d. Tear down
+run `ctrl + c` to stop the container
+Then the following for clean up:
+``` bash
+rm -rf data/raw/ndvi_synth
+
+docker compose down -v --remove-orphans
+```
+
+### Other relevant/ useful commands
+
+- Check tables present in Docker container (Run in another terminal tab)
+```bash
+docker exec -it fpts-postgis psql -U postgres -d fpts -c "\dt"
+```
 ------------------------------------------------------------------------
 
 ## Testing Strategy
@@ -133,13 +164,19 @@ Run tests:
 - (UNIT): `poetry run pytest -q`
 - (INTEGRATION ONLY):
     - For all integration tests, execute the following commands in order:
-    - `docker compose -f docker-compose.test.yml up -d`
-    - Then run: `poetry run pytest -q -m integration`
-    - `docker compose -f docker-compose.test.yml down -v`
+    - Start the test database:
+        - `docker compose -f docker-compose.test.yml down -v --remove-orphans`
+        - `docker compose -f docker-compose.test.yml up -d --build --force-recreate`
+    - (OPTIONAL) Verify schema exists
+        -  `docker compose -f docker-compose.test.yml exec -T postgis_test psql -U postgres -d fpts_test -c "\dt public.*"`
+    - Run integration tests ONLY:
+        - `poetry run pytest -m integration`
+    - (OPTIONAL) Run BOTH integration and unit tests:
+        - `poetry run pytest -m "integration or not integration"`
+    - Tear down
+        - `docker compose -f docker-compose.test.yml down -v --remove-orphans`
 
-- (UNIT AND INTEGRATION):
-    - Follow Docker commands from above and replace the poetry command with the one below:
-    - `poetry run pytest -q -m "integration or not integration"`
+
 
 ------------------------------------------------------------------------
 
