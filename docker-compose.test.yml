@@ -1,6 +1,8 @@
 services:
   postgis_test:
-    image: postgis/postgis:16-3.4
+    build:
+      context: .
+      dockerfile: Dockerfile.postgis-test
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -12,5 +14,3 @@ services:
       interval: 2s
       timeout: 2s
       retries: 30
-    volumes:
-      - ./src/fpts/sql/ddl/phenology_metrics.sql:/docker-entrypoint-initdb.d/001_phenology_metrics.sql:ro
