@@ -1,4 +1,9 @@
-from fpts.cache.codecs import decode_metric, encode_metric
+from fpts.cache.codecs import (
+    decode_metric,
+    decode_metric_list,
+    encode_metric,
+    encode_metric_list,
+)
 from fpts.cache.redis_cache import RedisTTLCache
 from fpts.cache.ttl_cache import InMemoryTTLCache
 from fpts.config.settings import Settings
@@ -29,13 +34,22 @@ def wire_in_memory_services(app, settings: Settings) -> None:
             maxsize=50_000, ttl_seconds=300
         )
 
+    if settings.cache_backend == "redis":
+        app.state.timeseries_cache = RedisTTLCache[list[PhenologyMetric]](
+            redis_url=settings.redis_url,
+            ttl_seconds=900,
+            dumps=encode_metric_list,
+            loads=lambda obj: decode_metric_list(obj),  # obj is list[dict]
+            key_prefix="fpts:",
+        )
+    else:
+        app.state.timeseries_cache = InMemoryTTLCache[str, list[PhenologyMetric]](
+            maxsize=10_000, ttl_seconds=900
+        )
+
     app.state.area_stats_cache = InMemoryTTLCache[str, dict](
         maxsize=5_000,
         ttl_seconds=3600,
-    )
-    app.state.timeseries_cache = InMemoryTTLCache[str, list[PhenologyMetric]](
-        maxsize=10_000,
-        ttl_seconds=900,
     )
 
     # Local raster repo to read from.
@@ -75,13 +89,22 @@ def wire_postgis_services(app, settings: Settings) -> None:
             maxsize=50_000, ttl_seconds=300
         )
 
+    if settings.cache_backend == "redis":
+        app.state.timeseries_cache = RedisTTLCache[list[PhenologyMetric]](
+            redis_url=settings.redis_url,
+            ttl_seconds=900,
+            dumps=encode_metric_list,
+            loads=lambda obj: decode_metric_list(obj),  # obj is list[dict]
+            key_prefix="fpts:",
+        )
+    else:
+        app.state.timeseries_cache = InMemoryTTLCache[str, list[PhenologyMetric]](
+            maxsize=10_000, ttl_seconds=900
+        )
+
     app.state.area_stats_cache = InMemoryTTLCache[str, dict](
         maxsize=5_000,
         ttl_seconds=3600,
-    )
-    app.state.timeseries_cache = InMemoryTTLCache[str, list[PhenologyMetric]](
-        maxsize=10_000,
-        ttl_seconds=900,
     )
 
     # Local raster repo to read from.

@@ -33,8 +33,12 @@ class QueryService:
             | InMemoryTTLCache[str, PhenologyMetric]
             | None
         ) = None,
+        timeseries_cache: (
+            RedisTTLCache[list[PhenologyMetric]]
+            | InMemoryTTLCache[str, list[PhenologyMetric]]
+            | None
+        ) = None,
         area_stats_cache: InMemoryTTLCache[str, dict] | None = None,
-        timeseries_cache: InMemoryTTLCache[str, list[PhenologyMetric]] | None = None,
     ) -> None:
         self._repository = repository
         self._point_cache = point_cache
