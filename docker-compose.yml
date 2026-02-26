@@ -1,6 +1,10 @@
 services:
   db:
-    image: postgis/postgis:15-3.4
+    build:
+      context: .
+      dockerfile: Dockerfile.postgis
+    volumes:
+      - db_data:/var/lib/postgresql/data
     container_name: fpts-postgis
     environment:
       POSTGRES_DB: fpts
@@ -13,9 +17,6 @@ services:
       interval: 2s
       timeout: 2s
       retries: 30
-    volumes:
-      - db_data:/var/lib/postgresql/data
-      - ./src/fpts/sql/ddl:/docker-entrypoint-initdb.d:ro
   redis:
     image: redis:7-alpine
     container_name: fpts-redis
