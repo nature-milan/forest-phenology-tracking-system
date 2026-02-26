@@ -14,7 +14,10 @@ router = APIRouter()
 def health_check():
     logger.info("Health check endpoint called.")
     return {
-        "status": "ok",
-        "environment": settings.environment,
-        "log_level": settings.log_level,
+        "Status": "ok",
+        "Environment": settings.environment,
+        "Log level": settings.log_level,
+        "Phenology repo backend": settings.phenology_repo_backend,
+        "Cache backend": settings.cache_backend,
+        "Metrics enabled": settings.enable_metrics,
     }
