@@ -146,6 +146,14 @@ docker compose down -v --remove-orphans
 ```bash
 docker exec -it fpts-postgis psql -U postgres -d fpts -c "\dt"
 ```
+
+### Functionality to be added
+
+- Seed the data automatically on startup so that users can query without having to manually generate data before building app.
+    - This will enable timeseries endpoint querying
+- Add POST functionality so user can optioanlly add their own data.
+- Logging (change logging back to structured logging for older messages)
+
 ------------------------------------------------------------------------
 
 ## Testing Strategy
@@ -176,22 +184,18 @@ Run tests:
     - Tear down
         - `docker compose -f docker-compose.test.yml down -v --remove-orphans`
 
-
-
 ------------------------------------------------------------------------
 
-## Next phase of project
+## Most recent phase of project
 
 Production Hardening:
 
--   Docker + docker-compose (API + PostGIS) ✅
--   GitHub Actions CI (lint + tests + coverage) ✅
--   Structured logging ✅
--   Request logging middleware ✅
--   Optional Prometheus metrics endpoint ✅
+-   Docker + docker-compose (API + PostGIS)
+-   GitHub Actions CI (lint + tests + coverage)
+-   Structured logging
+-   Request logging middleware
+-   Optional Prometheus metrics endpoint
 -   Basic caching strategy
-
-- Logging (change logging back to structured logging for older messages)
 
 ------------------------------------------------------------------------
 
