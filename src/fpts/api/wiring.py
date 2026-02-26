@@ -1,3 +1,5 @@
+from typing import Any
+
 from fpts.cache.codecs import (
     decode_metric,
     decode_metric_list,
@@ -47,10 +49,19 @@ def wire_in_memory_services(app, settings: Settings) -> None:
             maxsize=10_000, ttl_seconds=900
         )
 
-    app.state.area_stats_cache = InMemoryTTLCache[str, dict](
-        maxsize=5_000,
-        ttl_seconds=3600,
-    )
+    if settings.cache_backend == "redis":
+        app.state.area_stats_cache = RedisTTLCache[dict[str, Any]](
+            redis_url=settings.redis_url,
+            ttl_seconds=3600,
+            dumps=lambda obj: obj,  # already dict
+            loads=lambda obj: obj,  # already dict
+            key_prefix="fpts:",
+        )
+    else:
+        app.state.area_stats_cache = InMemoryTTLCache[str, dict](
+            maxsize=5_000,
+            ttl_seconds=3600,
+        )
 
     # Local raster repo to read from.
     app.state.raster_repo = LocalRasterRepository(data_dir=settings.data_dir)
@@ -102,10 +113,19 @@ def wire_postgis_services(app, settings: Settings) -> None:
             maxsize=10_000, ttl_seconds=900
         )
 
-    app.state.area_stats_cache = InMemoryTTLCache[str, dict](
-        maxsize=5_000,
-        ttl_seconds=3600,
-    )
+    if settings.cache_backend == "redis":
+        app.state.area_stats_cache = RedisTTLCache[dict[str, Any]](
+            redis_url=settings.redis_url,
+            ttl_seconds=3600,
+            dumps=lambda obj: obj,  # already dict
+            loads=lambda obj: obj,  # already dict
+            key_prefix="fpts:",
+        )
+    else:
+        app.state.area_stats_cache = InMemoryTTLCache[str, dict](
+            maxsize=5_000,
+            ttl_seconds=3600,
+        )
 
     # Local raster repo to read from.
     app.state.raster_repo = LocalRasterRepository(data_dir=settings.data_dir)

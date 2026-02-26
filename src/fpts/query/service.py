@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Any
 
 from fpts.cache.keys import (
     area_stats_cache_key,
@@ -38,7 +38,9 @@ class QueryService:
             | InMemoryTTLCache[str, list[PhenologyMetric]]
             | None
         ) = None,
-        area_stats_cache: InMemoryTTLCache[str, dict] | None = None,
+        area_stats_cache: (
+            RedisTTLCache[dict[str, Any]] | InMemoryTTLCache[str, dict[str, Any]] | None
+        ) = None,
     ) -> None:
         self._repository = repository
         self._point_cache = point_cache
