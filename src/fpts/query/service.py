@@ -1,4 +1,4 @@
-from typing import Optional, Any
+from typing import Any, Optional
 
 from fpts.cache.keys import (
     area_stats_cache_key,
