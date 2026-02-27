@@ -66,8 +66,15 @@ def get_point_phenology(
       (currently synthetic NDVI stack).
     """
     logger.info(
-        f"Phenology point query received: lat: {lat}, lon: {lon}, year: {year}, "
-        f"mode: {mode}, product: {product}, threshold_frac: {threshold_frac}"
+        "point_query_received",
+        extra={
+            "lat": lat,
+            "lon": lon,
+            "year": year,
+            "mode": mode,
+            "product": product,
+            "threshold_frac": threshold_frac,
+        },
     )
 
     location = Location(lat=lat, lon=lon)
@@ -182,8 +189,14 @@ def get_point_timeseries(
     query_service: QueryService = Depends(get_query_service),
 ):
     logger.info(
-        f"Phenology timeseries query received: lat: {lat}, lon: {lon}, "
-        f"start_year: {start_year}, end_year: {end_year}, product: {product}"
+        "timeseries_query_recieved",
+        extra={
+            "lat": lat,
+            "lon": lon,
+            "start_year": start_year,
+            "end_year": end_year,
+            "product": product,
+        },
     )
 
     if end_year < start_year:
@@ -247,7 +260,14 @@ def get_area_phenology_stats(
     ),
     query_service: QueryService = Depends(get_query_service),
 ):
-    logger.info(f"Phenology area query received: year: {year}, product: {product}")
+    logger.info(
+        "area_stats_query_received",
+        extra={
+            "year": year,
+            "product": product,
+            "payload": payload,
+        },
+    )
 
     try:
         stats = query_service.get_area_stats(
@@ -269,8 +289,6 @@ def get_area_phenology_stats(
                 f"for product: {product} and year: {year}",
             ),
         )
-
-    print(f"Stats: {stats}")
 
     return PhenologyAreaStatsResponse(
         product=product,

@@ -24,7 +24,13 @@ def raster_sample(
     Returns the sampled pixel value from the raster for (product, year) at (lat, lon).
     """
     logger.info(
-        f"Raster sample requested: product: {product}, year: {year}, lat: {lat}, lon: {lon}"
+        "raster_sample_query",
+        extra={
+            "product": product,
+            "year": year,
+            "lat": lat,
+            "lon": lon,
+        },
     )
 
     try:
