@@ -77,8 +77,8 @@ def test_phenology_point_compute_mode_returns_200(app_memory):
         "/phenology/point",
         params={
             "product": "ndvi_synth",
-            "lat": 40.0,
-            "lon": 10.0,
+            "lat": 51.415,
+            "lon": -0.415,
             "year": 2020,
             "mode": "compute",
         },
@@ -93,8 +93,8 @@ def test_phenology_point_auto_mode_returns_200(app_memory):
         "/phenology/point",
         params={
             "product": "ndvi_synth",
-            "lat": 40.0,
-            "lon": 10.0,
+            "lat": 51.425,
+            "lon": -0.425,
             "year": 2020,
             "mode": "auto",
         },
