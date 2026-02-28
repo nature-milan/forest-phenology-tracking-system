@@ -5,12 +5,11 @@ from fpts.api.routers.health import router as health_router
 from fpts.api.routers.metrics import router as metrics_router
 from fpts.api.routers.phenology import router as phenology_router
 from fpts.api.wiring import (
+    register_exception_handlers,
     wire_in_memory_services,
     wire_postgis_services,
-    register_exception_handlers,
 )
 from fpts.config.settings import Settings
-
 from fpts.utils.logging import get_logger, setup_logging
 from fpts.utils.metrics import PrometheusMetricsMiddleware
 from fpts.utils.middleware import RequestLoggingMiddleware

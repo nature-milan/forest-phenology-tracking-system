@@ -1,7 +1,7 @@
 from typing import Any
 
-from fastapi.responses import JSONResponse
 from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 
 from fpts.cache.codecs import (
     decode_metric,
@@ -12,8 +12,8 @@ from fpts.cache.codecs import (
 from fpts.cache.redis_cache import RedisTTLCache
 from fpts.cache.ttl_cache import InMemoryTTLCache
 from fpts.config.settings import Settings
-from fpts.domain.models import PhenologyMetric
 from fpts.domain.errors import OutOfCoverageError
+from fpts.domain.models import PhenologyMetric
 from fpts.processing.phenology_service import PhenologyComputationService
 from fpts.processing.raster_service import RasterService
 from fpts.query.service import QueryService
