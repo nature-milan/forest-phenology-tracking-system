@@ -1,5 +1,8 @@
 from typing import Any
 
+from fastapi.responses import JSONResponse
+from fastapi import FastAPI, Request
+
 from fpts.cache.codecs import (
     decode_metric,
     decode_metric_list,
@@ -10,12 +13,34 @@ from fpts.cache.redis_cache import RedisTTLCache
 from fpts.cache.ttl_cache import InMemoryTTLCache
 from fpts.config.settings import Settings
 from fpts.domain.models import PhenologyMetric
+from fpts.domain.errors import OutOfCoverageError
 from fpts.processing.phenology_service import PhenologyComputationService
 from fpts.processing.raster_service import RasterService
 from fpts.query.service import QueryService
 from fpts.storage.in_memory_repository import InMemoryPhenologyRepository
 from fpts.storage.local_raster_repository import LocalRasterRepository
 from fpts.storage.postgis_phenology_repository import PostGISPhenologyRepository
+
+
+def register_exception_handlers(app: FastAPI) -> None:
+    @app.exception_handler(OutOfCoverageError)
+    async def out_of_coverage_handler(
+        request: Request, exc: OutOfCoverageError
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=422,
+            content={
+                "error": "out_of_coverage",
+                "message": "Requested location is outside dataset coverage.",
+                "requested": {"lat": exc.lat, "lon": exc.lon},
+                "coverage": {
+                    "crs": "EPSG:4326",
+                    "lon_range": [exc.x_min, exc.x_max],
+                    "lat_range": [exc.y_min, exc.y_max],
+                },
+                "tolerance_deg": exc.tolerance_deg,
+            },
+        )
 
 
 def wire_in_memory_services(app, settings: Settings) -> None:

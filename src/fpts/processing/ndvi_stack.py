@@ -8,6 +8,7 @@ from typing import Sequence
 import rioxarray
 import xarray as xr
 
+from fpts.domain.errors import OutOfCoverageError
 from fpts.domain.models import Location
 
 _DOY_RE = re.compile(r"doy_(\d{3})\.tif$")
@@ -47,12 +48,36 @@ def load_ndvi_stack(paths: Sequence[Path]) -> xr.DataArray:
     return stack
 
 
-def extract_ndvi_timeseries(stack: xr.DataArray, location: Location) -> NdviTimeSeries:
+def extract_ndvi_timeseries(
+    stack: xr.DataArray, location: Location, *, tolerance_deg: float = 0.005
+) -> NdviTimeSeries:
     """
     Extract NDVI values across time at a given lat/lon (nearest pixel).
     Assumes x=lon, y=lat (EPSG:4326 in our synthetic data).
     """
-    sampled = stack.sel(x=location.lon, y=location.lat, method="nearest")
+    x_min = float(stack["x"].min())
+    x_max = float(stack["x"].max())
+    y_min = float(stack["y"].min())
+    y_max = float(stack["y"].max())
+
+    try:
+        sampled = stack.sel(
+            x=location.lon,
+            y=location.lat,
+            method="nearest",
+            tolerance=tolerance_deg,
+        )
+    except KeyError as e:
+        raise OutOfCoverageError(
+            lat=location.lat,
+            lon=location.lon,
+            tolerance_deg=tolerance_deg,
+            x_min=x_min,
+            x_max=x_max,
+            y_min=y_min,
+            y_max=y_max,
+        ) from e
+
     values = sampled.isel(band=0).values
     doys = [int(time) for time in sampled["time"].values.tolist()]
     ndvi = [float(val) for val in values.tolist()]
