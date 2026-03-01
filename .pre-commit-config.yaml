@@ -5,3 +5,13 @@ repos:
       - id: ruff
         args: ["--fix"]
       - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: integration-tests-docker
+        name: Run docker-compose.test.yml + pytest
+        entry: ./precommit_tests.sh
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+        files: ^(src/|tests/).*\.(py)$
