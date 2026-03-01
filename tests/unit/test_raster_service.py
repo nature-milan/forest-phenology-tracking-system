@@ -2,11 +2,10 @@ from pathlib import Path
 
 import numpy as np
 import rasterio
-from rasterio.transform import from_origin
-
 from fpts.domain.models import Location
 from fpts.processing.raster_service import RasterService
 from fpts.storage.local_raster_repository import LocalRasterRepository
+from rasterio.transform import from_origin
 
 
 def test_raster_service_samples_expected_value(tmp_path: Path):

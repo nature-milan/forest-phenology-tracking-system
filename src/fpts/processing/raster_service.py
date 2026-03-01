@@ -32,9 +32,7 @@ class RasterService:
         """
 
         if not self._raster_repo.exists(product=product, year=year):
-            raise FileNotFoundError(
-                f"Raster not found for product={product}, year={year}"
-            )
+            raise FileNotFoundError(f"Raster not found for product={product}, year={year}")
 
         path = self._raster_repo.raw_raster_path(product=product, year=year)
 

@@ -29,9 +29,7 @@ class QueryService:
         repository: PhenologyRepository,
         *,
         point_cache: (
-            RedisTTLCache[PhenologyMetric]
-            | InMemoryTTLCache[str, PhenologyMetric]
-            | None
+            RedisTTLCache[PhenologyMetric] | InMemoryTTLCache[str, PhenologyMetric] | None
         ) = None,
         timeseries_cache: (
             RedisTTLCache[list[PhenologyMetric]]
@@ -65,13 +63,9 @@ class QueryService:
                 threshold_frac=threshold_frac,
             )
             cached = self._point_cache.get(key)
-            logger.debug(
-                "cache_lookup", extra={"cache": "point_metric_repo", "key": key}
-            )
+            logger.debug("cache_lookup", extra={"cache": "point_metric_repo", "key": key})
             if cached is not None:
-                logger.debug(
-                    "cache_hit", extra={"cache": "point_metric_repo", "key": key}
-                )
+                logger.debug("cache_hit", extra={"cache": "point_metric_repo", "key": key})
                 return cached
 
             logger.debug("cache_miss", extra={"cache": "point_metric_repo", "key": key})
@@ -93,7 +87,6 @@ class QueryService:
         start_year: int,
         end_year: int,
     ) -> list[PhenologyMetric]:
-
         if self._timeseries_cache is not None:
             key = timeseries_cache_key(
                 product=product,
@@ -128,7 +121,6 @@ class QueryService:
         min_season_length: int | None = None,
         season_length_stat: str = "mean",
     ) -> dict | None:
-
         if self._area_stats_cache is not None:
             key = area_stats_cache_key(
                 product=product,

@@ -2,11 +2,10 @@ from pathlib import Path
 
 import numpy as np
 import rasterio
-from rasterio.transform import from_origin
-
 from fpts.domain.models import Location
 from fpts.processing.ndvi_stack import extract_ndvi_timeseries, load_ndvi_stack
 from fpts.processing.phenology_algorithm import compute_sos_eos_threshold
+from rasterio.transform import from_origin
 
 
 def _write_geotiff(path: Path, data: np.ndarray, transform) -> None:
@@ -50,9 +49,7 @@ def test_stack_to_timeseries_to_sos_eos(tmp_path: Path):
     assert [round(x, 3) for x in time_series.ndvi] == [round(x, 3) for x in ndvi_values]
 
     # Compute phenology (same expectation as earlier algorithm test)
-    result = compute_sos_eos_threshold(
-        ndvi=time_series.ndvi, doys=time_series.doys, frac=0.5
-    )
+    result = compute_sos_eos_threshold(ndvi=time_series.ndvi, doys=time_series.doys, frac=0.5)
     assert result.sos_doy == 150
     assert result.eos_doy == 250
     assert result.season_length == 100

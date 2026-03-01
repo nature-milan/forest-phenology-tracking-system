@@ -38,9 +38,7 @@ class PhenologyComputationService:
         self,
         raster_repo: RasterRepository,
         point_cache: (
-            RedisTTLCache[PhenologyMetric]
-            | InMemoryTTLCache[str, PhenologyMetric]
-            | None
+            RedisTTLCache[PhenologyMetric] | InMemoryTTLCache[str, PhenologyMetric] | None
         ) = None,
     ) -> None:
         self._raster_repo = raster_repo
@@ -55,7 +53,6 @@ class PhenologyComputationService:
         threshold_frac: float = 0.5,
         is_forest: bool = True,
     ) -> PhenologyMetric:
-
         point_cache_key = point_metric_cache_key(
             product=product,
             year=year,
@@ -101,12 +98,8 @@ class PhenologyComputationService:
             ndvi=time_series.ndvi, doys=time_series.doys, frac=threshold_frac
         )
 
-        sos_date: Optional[date] = (
-            _date_from_doy(year, dates.sos_doy) if dates.sos_doy else None
-        )
-        eos_date: Optional[date] = (
-            _date_from_doy(year, dates.eos_doy) if dates.eos_doy else None
-        )
+        sos_date: Optional[date] = _date_from_doy(year, dates.sos_doy) if dates.sos_doy else None
+        eos_date: Optional[date] = _date_from_doy(year, dates.eos_doy) if dates.eos_doy else None
 
         metric = PhenologyMetric(
             year=year,
@@ -157,9 +150,7 @@ class PhenologyComputationService:
 
         metrics: list[PhenologyMetric] = []
         for loc, ts in zip(locations, series_list, strict=True):
-            dates = compute_sos_eos_threshold(
-                ndvi=ts.ndvi, doys=ts.doys, frac=threshold_frac
-            )
+            dates = compute_sos_eos_threshold(ndvi=ts.ndvi, doys=ts.doys, frac=threshold_frac)
 
             sos_date: Optional[date] = (
                 _date_from_doy(year, dates.sos_doy) if dates.sos_doy else None

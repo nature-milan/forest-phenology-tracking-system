@@ -1,7 +1,6 @@
 from pathlib import Path
 
 import pytest
-
 from fpts.api.main import create_app
 from fpts.config.settings import Settings
 

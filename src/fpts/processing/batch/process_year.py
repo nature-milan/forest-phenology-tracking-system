@@ -36,7 +36,6 @@ def process_year_to_db(
     year: int,
     grid: GridSpec,
 ) -> int:
-
     raster_repo = LocalRasterRepository(data_dir=settings.data_dir)
     compute = PhenologyComputationService(raster_repo=raster_repo)
     db_repo = PostGISPhenologyRepository(dsn=settings.database_dsn)

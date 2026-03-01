@@ -25,12 +25,8 @@ router = APIRouter(prefix="/phenology", tags=["phenology"])
 
 @router.get("/point", response_model=PhenologyPointResponse)
 def get_point_phenology(
-    lat: float = Query(
-        ..., ge=-90.0, le=90.0, description="Latitude value for the point."
-    ),
-    lon: float = Query(
-        ..., ge=-180.0, le=180.0, description="Longitude value for the point."
-    ),
+    lat: float = Query(..., ge=-90.0, le=90.0, description="Latitude value for the point."),
+    lon: float = Query(..., ge=-180.0, le=180.0, description="Longitude value for the point."),
     year: int = Query(..., ge=2000, le=2027, description="Year we want to analyse."),
     mode: Literal["repo", "compute", "auto"] = Query(
         "repo",
@@ -48,9 +44,7 @@ def get_point_phenology(
         description="Fraction value used in calculating SOS and EOS limits.",
     ),
     query_service: QueryService = Depends(get_query_service),
-    compute_service: PhenologyComputationService = Depends(
-        get_phenology_compute_service
-    ),
+    compute_service: PhenologyComputationService = Depends(get_phenology_compute_service),
 ):
     """
     Get phenology metrics for a single point.
@@ -142,9 +136,7 @@ def get_points_phenology(
     threshold_frac: float = Query(
         0.5, gt=0.0, lt=1.0, description="Fraction value used in SOS/EOS limits."
     ),
-    compute_service: PhenologyComputationService = Depends(
-        get_phenology_compute_service
-    ),
+    compute_service: PhenologyComputationService = Depends(get_phenology_compute_service),
 ):
     locations = [Location(lat=loc.lat, lon=loc.lon) for loc in body.locations]
     metrics = compute_service.compute_points_phenology(
@@ -175,15 +167,9 @@ def get_points_phenology(
     },
 )
 def get_point_timeseries(
-    lat: float = Query(
-        ..., ge=-90.0, le=90.0, description="Latitude value for the point."
-    ),
-    lon: float = Query(
-        ..., ge=-180.0, le=180.0, description="Longitude value for the point."
-    ),
-    start_year: int = Query(
-        ..., ge=2000, le=2027, description="Start year (inclusive)."
-    ),
+    lat: float = Query(..., ge=-90.0, le=90.0, description="Latitude value for the point."),
+    lon: float = Query(..., ge=-180.0, le=180.0, description="Longitude value for the point."),
+    start_year: int = Query(..., ge=2000, le=2027, description="Start year (inclusive)."),
     end_year: int = Query(..., ge=2000, le=2027, description="End year (inclusive)."),
     product: str = Query("ndvi_synth", min_length=1, description="Product to analyse."),
     query_service: QueryService = Depends(get_query_service),
@@ -245,9 +231,7 @@ def get_area_phenology_stats(
     payload: GeoJSONPolygonRequest = Body(...),
     year: int = Query(..., ge=2000, le=2027, description="Year we want to analyse."),
     product: str = Query("ndvi_synth", min_length=1, description="Product to analyse."),
-    only_forest: bool = Query(
-        False, description="If True, only include forest points."
-    ),
+    only_forest: bool = Query(False, description="If True, only include forest points."),
     season_length_stat: SeasonLengthStat = Query(
         SeasonLengthStat.mean,
         description="How to summarise season_length: mean, median, or both.",

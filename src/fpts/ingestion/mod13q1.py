@@ -36,9 +36,7 @@ def _doy_from_iso(dt: str) -> int:
     return int(d.strftime("%j"))
 
 
-def download_to_path(
-    url: str, out_path: Path, *, timeout_s: float = 60.0
-) -> tuple[str, int]:
+def download_to_path(url: str, out_path: Path, *, timeout_s: float = 60.0) -> tuple[str, int]:
     """
     Download url -> out_path with atomic write.
     Returns (sha256, bytes).
@@ -112,13 +110,10 @@ class DownloadRecord:
 
 
 class Mod13Q1IngestionService:
-
     def __init__(self, settings: Settings) -> None:
         self._settings = settings
 
-    def build_plan(
-        self, *, year: int, bbox: tuple[float, float, float, float]
-    ) -> Mod13Q1Plan:
+    def build_plan(self, *, year: int, bbox: tuple[float, float, float, float]) -> Mod13Q1Plan:
         if pc is None:
             raise RuntimeError("planetary-computer package not available")
 
@@ -141,9 +136,7 @@ class Mod13Q1IngestionService:
                 # fallback if datetime missing
                 dt = props.get("start_datetime") or props.get("end_datetime")
             if not dt:
-                raise ValueError(
-                    f"STAC item missing datetime fields: {signed.get('id')}"
-                )
+                raise ValueError(f"STAC item missing datetime fields: {signed.get('id')}")
 
             # pick NDVI asset
             item_assets: dict[str, Any] = signed.get("assets", {})
@@ -167,9 +160,7 @@ class Mod13Q1IngestionService:
                 )
             )
 
-        assets.sort(
-            key=lambda a: (a.doy, a.item_id)
-        )  # stable ordering for deterministic manifests
+        assets.sort(key=lambda a: (a.doy, a.item_id))  # stable ordering for deterministic manifests
         return Mod13Q1Plan(
             collection=self._settings.mod13q1_collection,
             year=year,

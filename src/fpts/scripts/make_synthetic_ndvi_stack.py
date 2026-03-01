@@ -8,9 +8,7 @@ import rasterio
 from rasterio.transform import from_origin
 
 
-def write_geotiff(
-    path: Path, data: np.ndarray, transform, crs: str = "EPSG:4326"
-) -> None:
+def write_geotiff(path: Path, data: np.ndarray, transform, crs: str = "EPSG:4326") -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with rasterio.open(
         path,

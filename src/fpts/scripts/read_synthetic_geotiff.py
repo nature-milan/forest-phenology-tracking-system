@@ -8,9 +8,7 @@ import rioxarray
 def main() -> None:
     path = Path("data/raw/synthetic/2020.tif")
     if not path.exists():
-        raise FileNotFoundError(
-            f"Raster not found: {path}. Run make_synthetic_geotiff first."
-        )
+        raise FileNotFoundError(f"Raster not found: {path}. Run make_synthetic_geotiff first.")
 
     da = rioxarray.open_rasterio(path)  # DataArray with dims: band, y, x
 

@@ -36,9 +36,7 @@ class PrometheusMetricsMiddleware(BaseHTTPMiddleware):
 
         status_code = str(response.status_code)
 
-        HTTP_REQUESTS_TOTAL.labels(
-            method=method, path=path, status_code=status_code
-        ).inc()
+        HTTP_REQUESTS_TOTAL.labels(method=method, path=path, status_code=status_code).inc()
         HTTP_REQUEST_DURATION_SECONDS.labels(method=method, path=path).observe(duration)
 
         return response

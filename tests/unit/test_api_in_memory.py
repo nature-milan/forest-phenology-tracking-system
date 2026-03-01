@@ -1,7 +1,6 @@
 from datetime import date
 
 from fastapi.testclient import TestClient
-
 from fpts.domain.models import Location, PhenologyMetric
 
 

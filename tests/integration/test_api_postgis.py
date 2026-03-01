@@ -2,7 +2,6 @@ from datetime import date
 
 import pytest
 from fastapi.testclient import TestClient
-
 from fpts.domain.models import Location, PhenologyMetric
 
 
@@ -257,9 +256,7 @@ def test_phenology_area_returns_aggregates_for_intersecting_points(app_postgis):
 
 
 @pytest.mark.integration
-def test_phenology_area_returns_404_when_no_matches(
-    app_postgis, product="test_product", year=2020
-):
+def test_phenology_area_returns_404_when_no_matches(app_postgis, product="test_product", year=2020):
     poly = {
         "type": "Polygon",
         "coordinates": [

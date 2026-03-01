@@ -37,14 +37,10 @@ def load_ndvi_stack(paths: Sequence[Path]) -> xr.DataArray:
 
     # sort by DOY so time is in order
     sorted_paths = sorted(paths, key=_doy_from_filename)
-    rasters = [
-        rioxarray.open_rasterio(path) for path in sorted_paths
-    ]  # each: band, y, x
+    rasters = [rioxarray.open_rasterio(path) for path in sorted_paths]  # each: band, y, x
 
     stack = xr.concat(rasters, dim="time")  # time, band, y, x
-    stack = stack.assign_coords(
-        time=[_doy_from_filename(path) for path in sorted_paths]
-    )
+    stack = stack.assign_coords(time=[_doy_from_filename(path) for path in sorted_paths])
     return stack
 
 

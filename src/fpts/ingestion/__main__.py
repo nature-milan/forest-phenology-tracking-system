@@ -10,9 +10,7 @@ from fpts.ingestion.mod13q1 import Mod13Q1IngestionService, read_plan
 def _parse_bbox(string: str) -> tuple[float, float, float, float]:
     parts = [part.strip() for part in string.split(",")]
     if len(parts) != 4:
-        raise argparse.ArgumentTypeError(
-            "bbox must be 'min_lon, min_lat, max_lon, max_lat'"
-        )
+        raise argparse.ArgumentTypeError("bbox must be 'min_lon, min_lat, max_lon, max_lat'")
     return (float(parts[0]), float(parts[1]), float(parts[2]), float(parts[3]))
 
 

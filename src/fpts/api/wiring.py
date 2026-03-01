@@ -24,9 +24,7 @@ from fpts.storage.postgis_phenology_repository import PostGISPhenologyRepository
 
 def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(OutOfCoverageError)
-    async def out_of_coverage_handler(
-        request: Request, exc: OutOfCoverageError
-    ) -> JSONResponse:
+    async def out_of_coverage_handler(request: Request, exc: OutOfCoverageError) -> JSONResponse:
         return JSONResponse(
             status_code=422,
             content={

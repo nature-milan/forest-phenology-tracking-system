@@ -48,9 +48,7 @@ def test_point_metric_cache_key_includes_year_and_product():
     service = QueryService(repository=repo, point_cache=point_cache)
 
     _ = service.get_point_metric(product="p1", location=loc, year=2020)
-    _ = service.get_point_metric(
-        product="p1", location=loc, year=2021
-    )  # year change => miss
+    _ = service.get_point_metric(product="p1", location=loc, year=2021)  # year change => miss
 
     assert repo.get_metric_for_location.call_count == 2
 
@@ -72,12 +70,8 @@ def test_timeseries_cache_hits_avoid_repo_call():
     cache = InMemoryTTLCache[str, list[PhenologyMetric]](maxsize=100, ttl_seconds=999)
     service = QueryService(repository=repo, timeseries_cache=cache)
 
-    r1 = service.get_point_timeseries(
-        product="p1", location=loc, start_year=2018, end_year=2020
-    )
-    r2 = service.get_point_timeseries(
-        product="p1", location=loc, start_year=2018, end_year=2020
-    )
+    r1 = service.get_point_timeseries(product="p1", location=loc, start_year=2018, end_year=2020)
+    r2 = service.get_point_timeseries(product="p1", location=loc, start_year=2018, end_year=2020)
 
     assert r1 == r2 == [m2019]
     assert repo.get_timeseries_for_location.call_count == 1
@@ -92,12 +86,13 @@ def test_timeseries_cache_key_includes_year_range():
     cache = InMemoryTTLCache[str, list[PhenologyMetric]](maxsize=100, ttl_seconds=999)
     service = QueryService(repository=repo, timeseries_cache=cache)
 
-    _ = service.get_point_timeseries(
-        product="p1", location=loc, start_year=2018, end_year=2020
-    )
+    _ = service.get_point_timeseries(product="p1", location=loc, start_year=2018, end_year=2020)
 
     _ = service.get_point_timeseries(
-        product="p1", location=loc, start_year=2019, end_year=2020  # changed start_year
+        product="p1",
+        location=loc,
+        start_year=2019,
+        end_year=2020,  # changed start_year
     )
 
     assert repo.get_timeseries_for_location.call_count == 2

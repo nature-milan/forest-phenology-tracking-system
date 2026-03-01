@@ -59,9 +59,7 @@ def test_build_plan_extracts_ndvi_and_sorts_by_doy(monkeypatch):
     ]
 
     monkeypatch.setattr(mod13q1, "pc", SimpleNamespace(sign=_fake_sign))
-    monkeypatch.setattr(
-        mod13q1.Client, "open", lambda *_args, **_kw: _FakeCatalog(fake_items)
-    )
+    monkeypatch.setattr(mod13q1.Client, "open", lambda *_args, **_kw: _FakeCatalog(fake_items))
 
     svc = Mod13Q1IngestionService(settings=Settings())
 

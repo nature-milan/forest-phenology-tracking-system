@@ -27,7 +27,6 @@ class PostGISPhenologyRepository(PhenologyRepository):
         self.upsert_many(product=product, metrics=[metric])
 
     def upsert_many(self, *, product: str, metrics: Iterable[PhenologyMetric]) -> None:
-
         sql = UPSERT_MANY
 
         with self._connect() as conn:
@@ -54,7 +53,6 @@ class PostGISPhenologyRepository(PhenologyRepository):
         location: Location,
         year: int,
     ) -> PhenologyMetric | None:
-
         sql = GET_METRIC_FOR_LOCATION
 
         with self._connect() as conn:

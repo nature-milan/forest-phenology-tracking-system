@@ -20,9 +20,7 @@ def encode_metric(m: PhenologyMetric) -> dict[str, Any]:
 def decode_metric(d: dict[str, Any]) -> PhenologyMetric:
     return PhenologyMetric(
         year=int(d["year"]),
-        location=Location(
-            lat=float(d["location"]["lat"]), lon=float(d["location"]["lon"])
-        ),
+        location=Location(lat=float(d["location"]["lat"]), lon=float(d["location"]["lon"])),
         sos_date=date.fromisoformat(d["sos_date"]) if d.get("sos_date") else None,
         eos_date=date.fromisoformat(d["eos_date"]) if d.get("eos_date") else None,
         season_length=d.get("season_length"),

@@ -35,9 +35,7 @@ def raster_sample(
 
     try:
         location = Location(lat=lat, lon=lon)
-        value = raster_service.sample_point(
-            product=product, year=year, location=location
-        )
+        value = raster_service.sample_point(product=product, year=year, location=location)
         return {
             "product": product,
             "year": year,
