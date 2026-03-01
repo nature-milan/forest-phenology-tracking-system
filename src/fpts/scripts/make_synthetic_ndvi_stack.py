@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import numpy as np
@@ -27,12 +28,21 @@ def write_geotiff(
 
 
 def main() -> None:
+    # Use the same DATA_DIR contract as the API
+    data_root = Path(os.getenv("DATA_DIR", "data"))
+    out_dir = data_root / "raw" / "ndvi_synth" / "2020"
+
+    # Idempotency: if already seeded, exit cleanly
+    sentinel = out_dir / ".seeded"
+    if sentinel.exists():
+        print(f"Seed already present at {out_dir.resolve()}, skipping.")
+        return
+
     # We’ll pretend these are NDVI observations through a year.
     # DOYs and NDVI values are chosen to clearly show a seasonal curve.
     doys = [1, 50, 100, 150, 200, 250, 300, 350]
     ndvi_values = [0.10, 0.12, 0.20, 0.50, 0.70, 0.60, 0.25, 0.12]
 
-    out_dir = Path("data/raw/ndvi_synth/2020")
     transform = from_origin(west=-0.5, north=51.5, xsize=0.01, ysize=0.01)
 
     # 10x10 raster; every pixel has the same NDVI for this timestep (simple & deterministic)
@@ -43,6 +53,7 @@ def main() -> None:
         path = out_dir / f"doy_{doy:03d}.tif"
         write_geotiff(path, arr, transform)
 
+    sentinel.write_text("ok\n")
     print(f"Wrote {len(doys)} NDVI rasters to: {out_dir.resolve()}")
 
 
