@@ -110,33 +110,28 @@ Prerequisites
 
 ## Run Locally
 
-This will give you the ability to test the /phenoloyg/point API endpoint on any one of repo, compute or auto modes
+This will allow a user to test the /phenoloyg/point API endpoint on any one of repo, compute or auto modes
 
-    a. Generate synthetic data
-```bash
-rm -rf data/raw/ndvi_synth
-
-poetry run python -m fpts.scripts.make_synthetic_ndvi_stack
-```
-
-    b. Build and get API running (Only use -v tag if you want to clear the volume (databases and tables))
+a. Build and get API running (Only use -v tag if you want to clear the volume (databases and tables))
 ```bash
 docker compose down -v --remove-orphans
 
 docker compose up --build
 ```
 
-    c. Call /phenology/point API endpoint from a new terminal tab
+b. Call /phenology/point API endpoint from a new terminal tab
 ```bash
 curl "http://localhost:8000/phenology/point?product=ndvi_synth&year=2020&lat=51.495&lon=-0.495&mode=repo"
 ```
+If the above query returns no data found, try it with compute mode:
+```bash
+curl "http://localhost:8000/phenology/point?product=ndvi_synth&year=2020&lat=51.495&lon=-0.495&mode=compute"
+```
 
-    d. Tear down
+c. Tear down
 run `ctrl + c` to stop the container
 Then the following for clean up:
 ``` bash
-rm -rf data/raw/ndvi_synth
-
 docker compose down -v --remove-orphans
 ```
 
@@ -146,13 +141,6 @@ docker compose down -v --remove-orphans
 ```bash
 docker exec -it fpts-postgis psql -U postgres -d fpts -c "\dt"
 ```
-
-### Functionality to be added
-
-- Seed the data automatically on startup so that users can query without having to manually generate data before building app.
-    - This will enable timeseries endpoint querying
-- Add POST functionality so user can optioanlly add their own data.
-- Logging (change logging back to structured logging for older messages)
 
 ------------------------------------------------------------------------
 
@@ -201,6 +189,7 @@ Production Hardening:
 
 ## Future Polish
 
+-   Seed some data so that timeseries and area queeries can be made by users
 -   Architecture diagram
 -   Engineering decisions document
 -   Scaling discussion (tiling, batch jobs, async workers)
