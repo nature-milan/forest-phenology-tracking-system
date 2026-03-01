@@ -55,8 +55,9 @@ jobs:
           psql "$FPTS_TEST_DATABASE_DSN" -f src/fpts/sql/ddl/phenology_metrics.sql
 
       - name: Lint (ruff)
-        run: |
-          poetry run ruff check src tests
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --all-files
 
       - name: Unit tests (pytest + coverage)
         run: |
