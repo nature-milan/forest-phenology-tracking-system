@@ -70,8 +70,25 @@ SQL Layer - All runtime SQL centralized in sql/queries/phenology.py
 
 Returns phenology metrics for a single location and year.
 
+Parameters:
+- lat
+- lon
+- mode
+- year
+- product
+
+Behaviour:
 -   200 → Data found
 -   404 → No data for that location/year
+
+Sample query
+```bash
+curl "http://localhost:8000/phenology/point?product=ndvi_synth&year=2020&lat=51.495&lon=-0.495&mode=repo"
+```
+If the above query returns no data found, try it with compute mode:
+```bash
+curl "http://localhost:8000/phenology/point?product=ndvi_synth&year=2020&lat=51.495&lon=-0.495&mode=compute"
+```
 
 ------------------------------------------------------------------------
 
@@ -79,9 +96,21 @@ Returns phenology metrics for a single location and year.
 
 Returns multi-year phenology metrics for a single location.
 
-Parameters: - lat, lon - start_year, end_year - product
+Parameters:
+- lat
+- lon
+- start_year
+- end_year
+- product
 
-Behavior: - 400 → Invalid year range - 404 → No data found
+Behavior:
+- 400 → Invalid year range
+- 404 → No data found
+
+Sample query
+```bash
+curl "http://localhost:8000/phenology/timeseries?product=ndvi_synth&lat=52.5&lon=-1.0&start_year=2018&end_year=2022"
+```
 
 ------------------------------------------------------------------------
 
@@ -94,8 +123,23 @@ PostGIS (ST_IsValid, ST_IsEmpty) - Boundary-inclusive selection via
 ST_Covers - Optional filters: - only_forest - min_season_length -
 Supports statistics: - mean - median (via percentile_cont) - both
 
-HTTP Semantics: - 400 → Invalid geometry - 404 → Valid geometry but no
-intersecting data - 200 → Aggregated results
+Parameters:
+- geometry
+- season_length_stat
+- min_season_length
+- year
+- product
+
+Behavior:
+- 400 → Invalid geometry
+- 404 → Valid geometry but no intersecting data
+- 200 → Aggregated results
+
+Sample query
+
+```bash
+curl "http://localhost:8000/phenology/area?year=2024&product=ndvi_synth&min_season_length=180&season_length_stat=mean" -H "Content-Type: application/json" -d '{"geometry":{"type":"Polygon","coordinates":[[[-1.5,52.0],[-0.5,52.0],[-0.5,53.0],[-1.5,53.0],[-1.5,52.0]]]}}' 
+```
 
 ------------------------------------------------------------------------
 
@@ -105,12 +149,13 @@ Prerequisites
 - Python 3.11+ (preferably 3.12).
 - Poetry Installed.
 - (Optional) Git & GitHub for version control.
+- Docker
 
 ------------------------------------------------------------------------
 
 ## Run Locally
 
-This will allow a user to test the /phenoloyg/point API endpoint on any one of repo, compute or auto modes
+This will allow a user to query the /phenoloyg/point, /phenoloyg/timeseries and /phenoloyg/area API endpoints.
 
 a. Build and get API running (Only use -v tag if you want to clear the volume (databases and tables))
 ```bash
@@ -119,16 +164,7 @@ docker compose down -v --remove-orphans
 docker compose up --build
 ```
 
-b. Call /phenology/point API endpoint from a new terminal tab
-```bash
-curl "http://localhost:8000/phenology/point?product=ndvi_synth&year=2020&lat=51.495&lon=-0.495&mode=repo"
-```
-If the above query returns no data found, try it with compute mode:
-```bash
-curl "http://localhost:8000/phenology/point?product=ndvi_synth&year=2020&lat=51.495&lon=-0.495&mode=compute"
-```
-
-c. Tear down
+b. Tear down
 run `ctrl + c` to stop the container
 Then the following for clean up:
 ``` bash
@@ -184,12 +220,12 @@ Production Hardening:
 -   Request logging middleware
 -   Optional Prometheus metrics endpoint
 -   Basic caching strategy
+-   Seed data so that point, timeseries and area queries can be made by users on app startup
 
 ------------------------------------------------------------------------
 
 ## Future Polish
 
--   Seed some data so that timeseries and area queeries can be made by users
 -   Architecture diagram
 -   Engineering decisions document
 -   Scaling discussion (tiling, batch jobs, async workers)
