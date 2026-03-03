@@ -22,7 +22,7 @@ services:
     container_name: fpts-redis
     ports:
       - "6379:6379"
-  seed_data:
+  seed_compute_data:
     build: .
     container_name: fpts-seed-data
     user: "0:0"
@@ -39,6 +39,57 @@ services:
         "mkdir -p /app/data/raw && umask 022 && python -m fpts.scripts.make_synthetic_ndvi_stack",
       ]
     restart: "no"
+  seed_metrics_file:
+    build: .
+    container_name: fpts-seed-metrics-file
+    user: "0:0"
+    environment:
+      DATA_DIR: /app/data
+      ENVIRONMENT: production
+      LOG_LEVEL: info
+    volumes:
+      - fpts_data:/app/data
+    command:
+      [
+        "sh",
+        "-c",
+        "mkdir -p /app/data/seed && \
+        if [ -f /app/data/seed/phenology_metrics_seed.csv ]; then \
+          echo 'Seed CSV already exists. Skipping generation.'; \
+        else \
+          echo 'Generating seed CSV...'; \
+          umask 022 && python -m fpts.scripts.generate_seed_metrics \
+            --out /app/data/seed/phenology_metrics_seed.csv \
+            --product ndvi_synth \
+            --year-from 2016 --year-to 2026 \
+            --lon-min -7.5 --lon-max 2.0 \
+            --lat-min 49.5 --lat-max 59.0 \
+            --step-deg 0.1; \
+        fi",
+      ]
+    restart: "no"
+  seed_postgis:
+    build: .
+    container_name: fpts-seed-postgis
+    environment:
+      ENVIRONMENT: production
+      LOG_LEVEL: info
+      DATA_DIR: /app/data
+      DATABASE_DSN: postgresql://postgres:postgres@db:5432/fpts
+    volumes:
+      - fpts_data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+      seed_metrics_file:
+        condition: service_completed_successfully
+    command:
+      [
+        "sh",
+        "-c",
+        "python -m fpts.scripts.load_seed_metrics --csv /app/data/seed/phenology_metrics_seed.csv --batch-size 2000",
+      ]
+    restart: "no"
   api:
     build: .
     container_name: fpts-api
@@ -53,7 +104,8 @@ services:
       CACHE_BACKEND: redis
       REDIS_URL: redis://redis:6379/0
     volumes:
-      - fpts_data:/app/data
+      - fpts_data:/app/data/raw
+      - fpts_data:/app/data/seed
     ports:
       - "8000:8000"
     depends_on:
@@ -61,7 +113,9 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-      seed_data:
+      seed_compute_data:
+        condition: service_completed_successfully
+      seed_postgis:
         condition: service_completed_successfully
 
 volumes:
